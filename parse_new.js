@@ -1,8 +1,8 @@
 
 
-var Parser = (function () {
+function ParserFactory(fState, Type) {
     "use strict";
-
+    
     // (s -> [t] -> ME (s, [t], a)) -> Parser s t a
     function Parser(f) {
         this.parse = f;
@@ -17,6 +17,15 @@ var Parser = (function () {
         return {state: state, rest: rest, result: result};
     }
 
+    
+    // (s -> t -> s) -> Parser s t t
+    Parser.item = new Parser(function(s, xs) {
+        if(xs.length === 0) {
+            return Type.zero;
+        }
+        var x = xs[0];
+        return Type.pure(result(fState(s, x), xs.slice(1), x));
+    });
     
     // (a -> b) -> Parser t a -> Parser t b
     Parser.prototype.fmap = function(f) {
@@ -34,7 +43,7 @@ var Parser = (function () {
     // a -> Parser t a
     Parser.pure = function(x) {
         return new Parser(function(s, xs) {
-            return MaybeError.pure(result(s, xs, x));
+            return Type.pure(result(s, xs, x));
         });
     };
     
@@ -68,13 +77,13 @@ var Parser = (function () {
     };
     
     Parser.zero = new Parser(function(s, xs) {
-        return MaybeError.zero;
+        return Type.zero;
     });
     
     // Parser [t] t a
     Parser.error = function(value) {
         return new Parser(function(s, xs) {
-            return MaybeError.error(value);
+            return Type.error(value);
         });
     };
     
@@ -91,34 +100,25 @@ var Parser = (function () {
     
     // Parser t [t]
     Parser.get = new Parser(function(s, xs) {
-        return MaybeError.pure(result(s, xs, xs));
+        return Type.pure(result(s, xs, xs));
     });
     
     // [t] -> Parser t ()
     Parser.put = function(xs) {
         return new Parser(function(s, _xs_) {
-            return MaybeError.pure(result(s, xs, null));
+            return Type.pure(result(s, xs, null));
         });
     };
 
     Parser.getState = new Parser(function(s, xs) {
-        return MaybeError.pure(result(s, xs, s));
+        return Type.pure(result(s, xs, s));
     });
 
     Parser.setState = function(s) {
         return new Parser(function(_s_, xs) {
-            return MaybeError.pure(result(s, xs, null));
+            return Type.pure(result(s, xs, null));
         });
     };
-
-    // Parser t t
-    Parser.item = new Parser(function(s, xs) {
-        if(xs.length === 0) {
-            return MaybeError.zero;
-        }
-        var x = xs[0];
-        return MaybeError.pure(result(s, xs.slice(1), x));
-    });
     
     // (a -> Bool) -> Parser t a -> Parser t a
     Parser.prototype.check = function(p) {
@@ -133,7 +133,7 @@ var Parser = (function () {
             } else if(p(r.value.result)) {
                 return r;
             }
-            return MaybeError.zero;
+            return Type.zero;
         });
     };
     
@@ -175,7 +175,7 @@ var Parser = (function () {
                     state = r.value.state;
                     tokens = r.value.rest;
                 } else if(r.status === 'failure') {
-                    return MaybeError.pure(result(state, tokens, vals));
+                    return Type.pure(result(state, tokens, vals));
                 } else { // must respect errors
                     return r;
                 }
@@ -223,10 +223,10 @@ var Parser = (function () {
                     state = r.value.state;
                     tokens = r.value.rest;
                 } else {
-                    return MaybeError.zero;
+                    return Type.zero;
                 }
             }
-            return MaybeError.pure({state: s, rest: tokens, result: vals});
+            return Type.pure({state: s, rest: tokens, result: vals});
         });
     };
     
@@ -238,9 +238,9 @@ var Parser = (function () {
             if(r.status === 'error') {
                 return r;
             } else if(r.status === 'success') {
-                return MaybeError.zero;
+                return Type.zero;
             } else {
-                return MaybeError.pure({state: s, rest: xs, result: null});
+                return Type.pure({state: s, rest: xs, result: null});
             }
         });
     };
@@ -295,7 +295,7 @@ var Parser = (function () {
             }
         });
         return new Parser(function(s, xs) {
-            var r = MaybeError.zero,
+            var r = Type.zero,
                 i;
             for(i = 0; i < ps.length; i++) {
                 r = ps[i].parse(s, xs);
@@ -309,4 +309,19 @@ var Parser = (function () {
     
     return Parser;
     
-})();
+};
+
+var tokenCounter = ParserFactory(function(s, t) {return s + 1;}, MaybeError),
+    //
+    numberToken = tokenCounter.all([tokenCounter.item, tokenCounter.getState]),
+    // I'm expecting {status: 'success', value: {state: 1, rest: "bc", value: ['a', 1]}}
+    example = numberToken.parse(0, "abc");
+
+function lineCol(s, t) {
+    if(t === '\n') {
+        return {line: s.line + 1, column: 1};
+    }
+    return {line: s.line, column: s.column + 1};
+}
+
+var lc = ParserFactory(lineCol, MaybeError);
