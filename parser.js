@@ -66,12 +66,10 @@ var MaybeError = (function() {
 
 
 
-
-
-var Parser = (function () {
+function ParserFactory(Type) {
     "use strict";
-
-    // ([t] -> m ([t], a)) -> Parser m t a
+    
+    // (s -> [t] -> ME (s, [t], a)) -> Parser s t a
     function Parser(f) {
         this.parse = f;
     }
@@ -80,6 +78,24 @@ var Parser = (function () {
         throw new Error(JSON.stringify({type: type, function: fName,
                expected: expected, actual: actual}));
     }
+
+    function result(state, rest, value) {
+        return {state: state, rest: rest, result: value};
+    }
+    
+    function good(state, rest, value) {
+        return Type.pure(result(state, rest, value));
+    }
+
+    
+    // (s -> t -> s) -> Parser s t t
+    Parser.item = new Parser(function(s, xs) {
+        if(xs.length === 0) {
+            return Type.zero;
+        }
+        var x = xs[0];
+        return good(s, xs.slice(1), x);
+    });
     
     // (a -> b) -> Parser t a -> Parser t b
     Parser.prototype.fmap = function(f) {
@@ -87,20 +103,17 @@ var Parser = (function () {
             reportError('fmap', 'TypeError', 'function', f);
         }
         var self = this;
-        return new Parser(function(xs) {
-            return self.parse(xs).fmap(function(r) {
-                return {
-                    rest: r.rest,
-                    result: f(r.result)
-                };
+        return new Parser(function(s, xs) {
+            return self.parse(s, xs).fmap(function(r) {
+                return result(r.state, r.rest, f(r.result));
             });
         });
     };
     
     // a -> Parser t a
     Parser.pure = function(x) {
-        return new Parser(function(xs) {
-            return MaybeError.pure({rest: xs, result: x});
+        return new Parser(function(s, xs) {
+            return good(s, xs, x);
         });
     };
     
@@ -113,10 +126,11 @@ var Parser = (function () {
             reportError('bind', 'TypeError', 'function', f);
         }
         var self = this;
-        return new Parser(function(xs) {
-            var r = self.parse(xs);
+        return new Parser(function(s, xs) {
+            var r = self.parse(s, xs),
+                val = r.value;
             if(r.status === 'success') {
-                return f(r.value.result).parse(r.value.rest);
+                return f(val.result).parse(val.state, val.rest);
             }
             return r;
         });
@@ -127,19 +141,19 @@ var Parser = (function () {
             reportError('plus', 'TypeError', 'Parser', that);
         }
         var self = this;
-        return new Parser(function(xs) {
-            return self.parse(xs).plus(that.parse(xs));
+        return new Parser(function(s, xs) {
+            return self.parse(s, xs).plus(that.parse(s, xs));
         });
     };
     
-    Parser.zero = new Parser(function(xs) {
-        return MaybeError.zero;
+    Parser.zero = new Parser(function(s, xs) {
+        return Type.zero;
     });
     
     // Parser [t] t a
     Parser.error = function(value) {
-        return new Parser(function(xs) {
-            return MaybeError.error(value);
+        return new Parser(function(s, xs) {
+            return Type.error(value);
         });
     };
     
@@ -149,31 +163,45 @@ var Parser = (function () {
             reportError('mapError', 'TypeError', 'function', f);
         }
         var self = this;
-        return new Parser(function(xs) {
-            return self.parse(xs).mapError(f);
+        return new Parser(function(s, xs) {
+            return self.parse(s, xs).mapError(f);
         });
     };
     
     // Parser t [t]
-    Parser.get = new Parser(function(xs) {
-        return MaybeError.pure({rest: xs, result: xs});
+    Parser.get = new Parser(function(s, xs) {
+        return good(s, xs, xs);
     });
     
-    // [t] -> Parser t ()   // just for completeness
+    // [t] -> Parser t ()
     Parser.put = function(xs) {
-        return new Parser(function() {
-            return MaybeError.pure({rest: xs, result: null});
+        return new Parser(function(s, _xs_) {
+            return good(s, xs, null);
         });
     };
 
-    // Parser t t
-    Parser.item = new Parser(function(xs) {
-        if(xs.length === 0) {
-            return MaybeError.zero;
-        }
-        var x = xs[0];
-        return MaybeError.pure({rest: xs.slice(1), result: x});
+    Parser.getState = new Parser(function(s, xs) {
+        return good(s, xs, s);
     });
+
+    Parser.putState = function(s) {
+        return new Parser(function(_s_, xs) {
+            return good(s, xs, null);
+        });
+    };
+    
+    // (s -> s) -> Parser s t ()
+    Parser.updateState = function(f) {
+        return new Parser(function(s, xs) {
+            return good(f(s), xs, null);
+        });
+    };
+    // how about:
+    //    Parser.getState.bind(function(s) {
+    //        return Parser.putState(f(s));
+    //    });
+    // or:
+    //    Parser.getState.bind(compose(Parser.putState, f))
     
     // (a -> Bool) -> Parser t a -> Parser t a
     Parser.prototype.check = function(p) {
@@ -181,14 +209,14 @@ var Parser = (function () {
             reportError('check', 'TypeError', 'function', p);
         }
         var self = this;
-        return new Parser(function(xs) {
-            var r = self.parse(xs);
+        return new Parser(function(s, xs) {
+            var r = self.parse(s, xs);
             if(r.status !== 'success') {
                 return r;
             } else if(p(r.value.result)) {
                 return r;
             }
-            return MaybeError.zero;
+            return Type.zero;
         });
     };
     
@@ -218,17 +246,19 @@ var Parser = (function () {
     // Parser t a -> Parser t [a]
     Parser.prototype.many0 = function() {
         var self = this;
-        return new Parser(function(xs) {
+        return new Parser(function(s, xs) {
             var vals = [],
+                state = s,
                 tokens = xs,
                 r;
             while(true) {
-                r = self.parse(tokens);
+                r = self.parse(state, tokens);
                 if(r.status === 'success') {
                     vals.push(r.value.result);
+                    state = r.value.state;
                     tokens = r.value.rest;
                 } else if(r.status === 'failure') {
-                    return MaybeError.pure({rest: tokens, result: vals});
+                    return good(state, tokens, vals);
                 } else { // must respect errors
                     return r;
                 }
@@ -262,36 +292,38 @@ var Parser = (function () {
                 reportError('all', 'TypeError', 'Parser', p);
             }
         });
-        return new Parser(function(xs) {
+        return new Parser(function(s, xs) {
             var vals = [],
                 i, r,
+                state = s,
                 tokens = xs;
             for(i = 0; i < ps.length; i++) {
-                r = ps[i].parse(tokens);
+                r = ps[i].parse(state, tokens);
                 if(r.status === 'error') {
                     return r;
                 } else if(r.status === 'success') {
                     vals.push(r.value.result);
+                    state = r.value.state;
                     tokens = r.value.rest;
                 } else {
-                    return MaybeError.zero;
+                    return Type.zero;
                 }
             }
-            return MaybeError.pure({rest: tokens, result: vals});
+            return Type.pure({state: state, rest: tokens, result: vals});
         });
     };
     
     // Parser t a -> Parser t ()
     Parser.prototype.not0 = function() {
         var self = this;
-        return new Parser(function(xs) {
-            var r = self.parse(xs);
+        return new Parser(function(s, xs) {
+            var r = self.parse(s, xs);
             if(r.status === 'error') {
                 return r;
             } else if(r.status === 'success') {
-                return MaybeError.zero;
+                return Type.zero;
             } else {
-                return MaybeError.pure({rest: xs, result: null}); // or undefined?  ???
+                return Type.pure({state: s, rest: xs, result: null});
             }
         });
     };
@@ -345,11 +377,11 @@ var Parser = (function () {
                 reportError('any', 'TypeError', 'Parser', p);
             }
         });
-        return new Parser(function(xs) {
-            var r = MaybeError.zero,
+        return new Parser(function(s, xs) {
+            var r = Type.zero,
                 i;
             for(i = 0; i < ps.length; i++) {
-                r = ps[i].parse(xs);
+                r = ps[i].parse(s, xs);
                 if(r.status === 'success' || r.status === 'error') {
                     return r;
                 }
@@ -360,22 +392,90 @@ var Parser = (function () {
     
     return Parser;
     
+};
+
+
+
+var Parser = ParserFactory(MaybeError),
+    eg1 = Parser.all([Parser.literal('a'), Parser.get, Parser.getState, Parser.putState(13), Parser.literal('b')]);
+
+
+var Braces = (function() {
+    
+    function Braces(opens) {
+        this.opens = opens;
+    }
+    
+    Braces.prototype.push = function(b) {
+        var newBs = this.opens.slice();
+        newBs.push(b);
+        return new Braces(newBs);
+    };
+    
+    Braces.prototype.pop = function() {
+        if(this.opens.length === 0) {
+            return false;
+        }
+        var butLast = this.opens.slice(0, this.opens.length - 1),
+            last = this.opens[this.opens.length - 1];
+        return [last, new Braces(butLast)];
+    };
+    
+    return Braces;
+    
 })();
-
-
-
+    
 var BlockParser = (function () {
     "use strict";
     
-    var open = Parser.literal("{"),
-        close = Parser.literal("}"),
-        normalChar = open.plus(close).not1();
+    function eq(a, b) {
+        return a === b[0];
+    }
+    
+    function pushToken(t) {
+        return Parser.updateState(function(bs) {
+            return bs.push(t);
+        }).seq2R(Parser.pure(t));
+    }
+    
+    function matches(open, close) {
+        var o = open[0],
+            c = close[0];
+        var ms = { '{' : '}', '(': ')', '[': ']'};
+        return ms[o] === c;
+    }        
+    
+    function popToken(t) {
+        return Parser.getState.bind(function(bs) {
+            var newBs = bs.pop();
+            if(!newBs) {return Parser.error({message: "unmatched brace", brace: t});}
+            var top = newBs[0],
+                rest = newBs[1];
+            if(!top) {alert("fuck me in the ass and call me gay");}
+            if ( matches(top, t) ) {
+                return Parser.putState(rest).seq2R(Parser.pure(t));
+            }
+            return Parser.error({message: 'mismatched braces', open: top, close: t});
+        });
+    }
+    
+    var OS = {'{': 1, '(': 1, '[': 1},
+        CS = {'}': 1, ')': 1, ']': 1};
+    
+    var open = Parser.item.check(function(t) {return t[0] in OS;}).bind(pushToken),
+        close = Parser.item.check(function(t) {return t[0] in CS;}).bind(popToken),
+        normalChar = open.plus(close).not1().fmap(function(t) {return t[0];});
         
     var form = new Parser(function() {}); // forward declaration to allow recursion
     
-    var block = open
-        .seq2R(form.many1().optional())
-        .seq2L(close);
+    var block = open.bind(function(o) {
+        return Parser.app(
+            function(fs, cl) {
+                return {type: 'block', start: o.slice(1), forms: fs, end: cl.slice(1)};
+            },
+            form.many0(),
+            close.commit({message: 'unmatched brace', brace: o}));
+    });
     
     form.parse = normalChar.plus(block).parse; // set 'form' to its actual value
     
@@ -384,3 +484,23 @@ var BlockParser = (function () {
     return parser;
 
 })();
+
+var str = "abc{\nd{derr}ef}g\nh}ib{largh".split(''),
+    toks = addLineCol(str),
+    toks2 = addLineCol("abcde");
+
+function addLineCol(str) {
+    var toks = [],
+        line = 1, 
+        column = 1;
+    for(var i = 0; i < str.length; i++) {
+        toks.push([str[i], line, column]);
+        column++;
+        if(str[i] === '\n') {line++; column = 1;}
+    }
+    return toks;
+}
+
+function example(str) {
+    return BlockParser.parse(new Braces([]), addLineCol(str));
+}
