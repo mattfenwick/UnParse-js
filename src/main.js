@@ -1,12 +1,12 @@
 var imports = [
-    "maybeerror",
-    "parsercombinators",
-    "example"
+    "app/maybeerror",
+    "app/parser",
+    "app/example"
 ];
 
 require(imports, function(me, pc, eg) {
 
     window.MaybeError = me;
-    window.ParserCombinators = pc;
+    window.Parser = pc;
     window.Example = eg;
 });

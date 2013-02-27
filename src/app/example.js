@@ -1,8 +1,7 @@
-define(["maybeerror", "parsercombinators"], function(MaybeError, ParserFactory) {
+define(["app/parser"], function(Parser) {
     "use strict";
 
-    var Parser = ParserFactory(MaybeError),
-        eg1 = Parser.all([Parser.literal('a'), Parser.get, Parser.getState, Parser.putState(13), Parser.literal('b')]);
+    var eg1 = Parser.all([Parser.literal('a'), Parser.get, Parser.getState, Parser.putState(13), Parser.literal('b')]);
 
     var Braces = (function() {
         
@@ -30,7 +29,6 @@ define(["maybeerror", "parsercombinators"], function(MaybeError, ParserFactory) 
     })();
         
     var BlockParser = (function () {
-        "use strict";
         
         function eq(a, b) {
             return a === b[0];
