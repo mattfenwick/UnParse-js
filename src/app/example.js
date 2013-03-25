@@ -2,29 +2,51 @@ define(["app/parser"], function(Parser) {
     "use strict";
 
     var eg1 = Parser.all([Parser.literal('a'), Parser.get, Parser.getState, Parser.putState(13), Parser.literal('b')]);
-
-    var Braces = (function() {
-        
-        function Braces(opens) {
-            this.opens = opens;
+    
+    var Stack = (function() {
+    
+        function Stack(elem, rest) {
+            this.elem = elem;
+            this.rest = rest;
         }
         
-        Braces.prototype.push = function(b) {
-            var newBs = this.opens.slice();
-            newBs.push(b);
-            return new Braces(newBs);
+        var empty = new Stack(undefined, undefined);
+        empty.isEmpty = true;
+        Stack.empty = empty;
+        
+        Stack.prototype.push = function(elem) {
+            return new Stack(elem, this);
         };
         
-        Braces.prototype.pop = function() {
-            if(this.opens.length === 0) {
-                return false;
+        Stack.prototype.pop = function() {
+            if ( this.isEmpty ) {
+                throw new Error("can't pop empty stack");
             }
-            var butLast = this.opens.slice(0, this.opens.length - 1),
-                last = this.opens[this.opens.length - 1];
-            return [last, new Braces(butLast)];
+            return [this.elem, this.rest];
         };
         
-        return Braces;
+        // top of stack (i.e. the business end) corresponds to the end of the array
+        Stack.fromArray = function(elems) {
+            var stack = empty;
+            elems.map(function(e) {
+                stack = stack.push(e);
+            });
+            return stack;
+        };
+        
+        Stack.prototype.toArray = function() {
+            var stack = this,
+                elems = [],
+                popped;
+            while(!stack.isEmpty) {
+                popped = stack.pop();
+                elems.unshift(popped[0]);
+                stack = popped[1];
+            }
+            return elems;
+        };
+        
+        return Stack;
         
     })();
         
@@ -49,11 +71,12 @@ define(["app/parser"], function(Parser) {
         
         function popToken(t) {
             return Parser.getState.bind(function(bs) {
+                if ( bs.isEmpty ) {
+                    return Parser.error({message: "unmatched close brace", brace: t});
+                }
                 var newBs = bs.pop();
-                if(!newBs) {return Parser.error({message: "unmatched brace", brace: t});}
                 var top = newBs[0],
                     rest = newBs[1];
-                if(!top) {alert("oops .... unexpected error");}
                 if ( matches(top, t) ) {
                     return Parser.putState(rest).seq2R(Parser.pure(t));
                 }
@@ -64,19 +87,32 @@ define(["app/parser"], function(Parser) {
         var OS = {'{': 1, '(': 1, '[': 1},
             CS = {'}': 1, ')': 1, ']': 1};
         
-        var open = Parser.item.check(function(t) {return t[0] in OS;}).bind(pushToken),
-            close = Parser.item.check(function(t) {return t[0] in CS;}).bind(popToken),
-            normalChar = open.plus(close).not1().fmap(function(t) {return t[0];});
+        var open = Parser
+                .item                  // consume a token
+                .check(function(t) {   // see if it's an opening brace
+                    return t[0] in OS;
+                })
+                .bind(pushToken),      // update the state
+            close = Parser
+                .item
+                .check(function(t) {
+                    return t[0] in CS;
+                })
+                .bind(popToken),
+            normalChar = open
+                .plus(close)
+                .not1()
+                .fmap(function(t) {return t[0];});
             
         var form = new Parser(function() {}); // forward declaration to allow recursion
         
         var block = open.bind(function(o) {
             return Parser.app(
-                function(fs, cl) {
+                function(fs, cl) { // looks like the slices are for grabbing the line/column info
                     return {type: 'block', start: o.slice(1), forms: fs, end: cl.slice(1)};
                 },
                 form.many0(),
-                close.commit({message: 'unmatched brace', brace: o}));
+                close.commit({message: 'unmatched open brace', brace: o}));
         });
         
         form.parse = normalChar.plus(block).parse; // set 'form' to its actual value
@@ -86,10 +122,6 @@ define(["app/parser"], function(Parser) {
         return parser;
 
     })();
-
-    var str = "abc{\nd{derr}ef}g\nh}ib{largh".split(''),
-        toks = addLineCol(str),
-        toks2 = addLineCol("abcde");
 
     function addLineCol(str) {
         var toks = [],
@@ -104,12 +136,12 @@ define(["app/parser"], function(Parser) {
     }
 
     function example(str) {
-        return BlockParser.parse(new Braces([]), addLineCol(str));
+        return BlockParser.parse(addLineCol(str), Stack.fromArray([]));
     }
     
     return {
         'Parser': Parser,
-        'Braces': Braces,
+        'Stack' : Stack,
         'BlockParser': BlockParser,
         'addLineCol' : addLineCol,
         'example' : example
