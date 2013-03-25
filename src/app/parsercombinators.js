@@ -98,8 +98,8 @@ define(function() {
                 reportError('mapError', 'TypeError', 'function', f);
             }
             var self = this;
-            return new Parser(function(s, xs) {
-                return self.parse(s, xs).mapError(f);
+            return new Parser(function(xs, s) {
+                return self.parse(xs, s).mapError(f);
             });
         };
         
@@ -146,8 +146,8 @@ define(function() {
                 reportError('check', 'TypeError', 'function', p);
             }
             var self = this;
-            return new Parser(function(s, xs) {
-                var r = self.parse(s, xs);
+            return new Parser(function(xs, s) {
+                var r = self.parse(xs, s);
                 if(r.status !== 'success') {
                     return r;
                 } else if(p(r.value.result)) {
@@ -183,19 +183,19 @@ define(function() {
         // Parser t e s a -> Parser t e s [a]
         Parser.prototype.many0 = function() {
             var self = this;
-            return new Parser(function(s, xs) {
+            return new Parser(function(xs, s) {
                 var vals = [],
-                    state = s,
                     tokens = xs,
+                    state = s,
                     r;
                 while(true) {
-                    r = self.parse(state, tokens);
+                    r = self.parse(tokens, state);
                     if(r.status === 'success') {
                         vals.push(r.value.result);
                         state = r.value.state;
                         tokens = r.value.rest;
                     } else if(r.status === 'failure') {
-                        return good(state, tokens, vals);
+                        return good(vals, tokens, state);
                     } else { // must respect errors
                         return r;
                     }
@@ -206,6 +206,34 @@ define(function() {
         // Parser t e s a -> Parser t e s [a]
         Parser.prototype.many1 = function() {
             return this.many0().check(function(x) {return x.length > 0;});
+        };
+        
+        // [Parser t e s a] -> Parser t e s [a]
+        Parser.all = function(ps) {
+            ps.map(function(p) {
+                if(!(p instanceof Parser)) {
+                    reportError('all', 'TypeError', 'Parser', p);
+                }
+            });
+            return new Parser(function(xs, s) {
+                var vals = [],
+                    i, r,
+                    state = s,
+                    tokens = xs;
+                for(i = 0; i < ps.length; i++) {
+                    r = ps[i].parse(tokens, state);
+                    if(r.status === 'error') {
+                        return r;
+                    } else if(r.status === 'success') {
+                        vals.push(r.value.result);
+                        state = r.value.state;
+                        tokens = r.value.rest;
+                    } else {
+                        return Type.zero;
+                    }
+                }
+                return Type.pure({state: state, rest: tokens, result: vals});
+            });
         };
 
         // (a -> ... z) -> (Parser t e s a, ...) -> Parser t e s z
@@ -222,45 +250,17 @@ define(function() {
             return this.plus(Parser.pure(x));
         };
         
-        // [Parser t e s a] -> Parser t e s [a]
-        Parser.all = function(ps) {
-            ps.map(function(p) {
-                if(!(p instanceof Parser)) {
-                    reportError('all', 'TypeError', 'Parser', p);
-                }
-            });
-            return new Parser(function(s, xs) {
-                var vals = [],
-                    i, r,
-                    state = s,
-                    tokens = xs;
-                for(i = 0; i < ps.length; i++) {
-                    r = ps[i].parse(state, tokens);
-                    if(r.status === 'error') {
-                        return r;
-                    } else if(r.status === 'success') {
-                        vals.push(r.value.result);
-                        state = r.value.state;
-                        tokens = r.value.rest;
-                    } else {
-                        return Type.zero;
-                    }
-                }
-                return Type.pure({state: state, rest: tokens, result: vals});
-            });
-        };
-        
         // Parser t e s a -> Parser t e s ()
         Parser.prototype.not0 = function() {
             var self = this;
-            return new Parser(function(s, xs) {
-                var r = self.parse(s, xs);
+            return new Parser(function(xs, s) {
+                var r = self.parse(xs, s);
                 if(r.status === 'error') {
                     return r;
                 } else if(r.status === 'success') {
                     return Type.zero;
                 } else {
-                    return Type.pure({state: s, rest: xs, result: null});
+                    return good(null, xs, s);
                 }
             });
         };

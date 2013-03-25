@@ -18,35 +18,6 @@ define(["app/parser", "app/maybeerror"], function (Parser, MaybeError) {
         function myPure(value, rest, state) {
             return Parser.pure(value).parse(rest, state);
         }
-		
-        function g(l, r) {
-            if(l.length !== r.length) {
-                return false;
-            }
-            for(var i = 0; i < l.length; i++) {
-                if(l[i] !== r[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        
-        function f(x, y) {
-            return x.b === y.b;
-        }
-        
-        function f3(x,y,z) {
-            return x + z;
-        }
-        
-        function fe(e) {
-            return {e: e, length: e.length};
-        }
-        
-        var allEx = all([item, literal('x'), literal('3')]),
-            seq2LEx = literal('a').seq2L(literal("b")),
-            seq2REx = literal('a').seq2R(literal("b")),
-            anyEx = Parser.any([literal('a'), literal('b'), string("zyx")]);
 
         test("item", function() {
             deepEqual(myPure('a', 'bdc', 32), item.parse('abdc', 32));
@@ -79,89 +50,165 @@ define(["app/parser", "app/maybeerror"], function (Parser, MaybeError) {
             deepEqual(myPure(1, [3], 'oo'), ex.parse([1,2,1,3], 'oo'));
             deepEqual(zero, ex.parse([1,2,3,4], 'oop'));
         });
-
-        test("check", function() {
-            function gt3(x) {return x > 3;}
-            deepEqual(zero, item.check(fe).parse(""));
-            deepEqual(myPure(4, [5, "abc"]), item.check(gt3).parse([4, 5, "abc"]));
-            deepEqual(zero, item.check(gt3).parse([2, 5, 'abc']));
-        });
         
         test("plus", function() {
             var p = literal('a').plus(literal('b'));
             deepEqual(myPure('a', 'bcde', [1,2]), p.parse("abcde", [1,2]));
             deepEqual(myPure('b', 'cde', [1,2]), p.parse("bcde", [1,2]));
             deepEqual(zero, p.parse("cde", [1,2]));
-            deepEqual(MaybeError.error("xyz", [1,2]), literal('a').plus(Parser.get.bind(Parser.error)).parse("xyz", [1,2]));
+            deepEqual(error("xyz", [1,2]), literal('a').plus(Parser.get.bind(err)).parse("xyz", [1,2]));
         });
         
         test("zero", function() {
             deepEqual(zero, Parser.zero.parse("abc123", [1,2]));
         });
 
-		
-        var tests = [
-            ['satisfy', sat(fe).parse(""), zero],
-            ['satisfy', sat(function(x) {return x > 3;}).parse([4, 5, "abc"]), myPure(4, [5, "abc"])],
-            ['satisfy', sat(function(y) {return y % 2 === 0;}).parse([17, 'duh']), zero],
-            ['literal', literal('a').parse(""), zero],
-            ['literal', literal('b').parse("cde"), zero],
-            ['literal', literal('m').parse("matt"), myPure('m', "att")],
-            ['literal', literal(13).parse([13, 79, 22]), myPure(13, [79, 22])],
-            ['literal -- the equality comparison must work for anything"',                         
-                literal([12, 13], g).parse([[12,13], 27, "abc"]),
-                myPure([12, 13], [27, "abc"])],
-            ['literal', literal({b: 2, c: 3}, f).parse([{b: 2, c: 311}, 17]),
-                myPure({b: 2, c: 311}, [17])],
-            ['commit -- turns failure into an error', 
-                literal('a').commit('blegg').parse("bcde"), err('blegg').parse("bcde")],
-            ['commit -- does not affect success', 
-                literal('a').commit('???').parse("abcde"), myPure('a', 'bcde')],
-            ['commit -- does not affect errors', 
-                err(123).commit('ouch!').parse('abcde'), MaybeError.error(123)],
-            ['all -- identity', all([]).parse('abc'), myPure([], 'abc')],
-            ['all', all([literal('2')]).parse("2345"), myPure(['2'], '345')],
-            ['all', allEx.parse("ax3dyz"), myPure(['a', 'x', '3'], "dyz")],
-            ['all', allEx.parse("bx4zzz"), zero],
-            ['seq2L', seq2LEx.parse("abcdefg"), myPure('a', 'cdefg')],
-            ['seq2L', seq2LEx.parse("acefg"), zero],
-            ['seq2R', seq2REx.parse("abcdefg"), myPure('b', 'cdefg')],
-            ['seq2R', seq2REx.parse("acefg"), zero],
-            ['string', string('public').parse("publicness"), myPure('public', 'ness')],
-            ['string', string('public').parse("pub-a-thon"), zero],
-            ['many0', literal('a').many0().parse("bbb"), myPure([], 'bbb')],
-            ['many0', literal('a').many0().parse("aaaaaabcd"), myPure(['a', 'a', 'a', 'a', 'a', 'a'], 'bcd')],
-            ['many0  -- must respect errors', Parser.error('abc').many0().parse("abc"), 
-                MaybeError.error("abc")],
-            ['many1', literal('a').many1().parse("bbb"), zero],
-            ['many1', literal('a').many1().parse("aaaaaabcd"), myPure(['a', 'a', 'a', 'a', 'a', 'a'], 'bcd')],
-            ['many1 -- must respect errors', Parser.error('abc').many1().parse("abc"),
-                MaybeError.error("abc")],
-            ['any', anyEx.parse("aq123"), myPure('a', 'q123')],
-            ['any', anyEx.parse("zyx34534"), myPure('zyx', '34534')],
-            ['any', anyEx.parse("zy123"), zero],
-            ['any -- must respect errors', 
-                any([literal('a'), Parser.error(13)]).parse('cde'),
-                MaybeError.error(13)],
-            ['app', Parser.app(f3, item, literal(-1), item).parse([18, -1, 27, 3, 4]), 
-                myPure(45, [3, 4])],
-            ['app', Parser.app(undefined, item, literal(2)).parse([1,3,4,5]), zero],
-            ['app -- must respect errors', 
-                Parser.app(undefined, item, literal(1).commit('blah')).parse([1,2,3,4]),
-                MaybeError.error('blah')],
-            ['optional', literal('a').optional().parse('bcde'), myPure(undefined, 'bcde')],
-            ['optional', literal('a').optional().parse('abcd'), myPure('a', 'bcd')],
-            ['error', literal('a').seq2R(err('qrs')).parse('abcd'),
-                MaybeError.error('qrs')],
-            ['error', literal('a').seq2R(err('tuv')).parse('bcd'), zero],
-            ['mapError', err([89, 22]).parse([2,3,4]).mapError(fe), 
-                MaybeError.error({e: [89, 22], length: 2})]
-        ];
+        test("error", function() {
+            deepEqual(error('qrs'), literal('a').seq2R(err('qrs')).parse('abcd'));
+            deepEqual(zero, literal('a').seq2R(err('tuv')).parse('bcd'));
+        });
+
+        test("mapError", function() {
+            deepEqual(error(4), err('oops').parse([2,3,4]).mapError(function(x) {return x.length;}));
+        });
         
-        test("everything?", function() {
-            tests.map(function(x) {
-                deepEqual(x[1], x[2], x[0]);
-            });
+        test("get", function() {
+            ok(0, "unimplemented");
+        });
+
+        test("put", function() {
+            ok(0, "unimplemented");
+        });
+
+        test("getState", function() {
+            ok(0, "unimplemented");
+        });
+
+        test("putState", function() {
+            ok(0, "unimplemented");
+        });
+
+        test("updateState", function() {
+            ok(0, "unimplemented");
+        });
+
+        test("check", function() {
+            function gt3(x) {return x > 3;}
+            deepEqual(zero, item.check(gt3).parse(""));
+            deepEqual(myPure(4, [5, "abc"]), item.check(gt3).parse([4, 5, "abc"]));
+            deepEqual(zero, item.check(gt3).parse([2, 5, 'abc']));
+        });
+        
+        test("literal", function() {
+			function g(l, r) {
+				if(l.length !== r.length) {
+					return false;
+				}
+				for(var i = 0; i < l.length; i++) {
+					if(l[i] !== r[i]) {
+						return false;
+					}
+				}
+				return true;
+			}
+			
+            var a = literal('a'),
+                thirteen = literal(13),
+                lis = literal([12, 13], g);
+                
+            deepEqual(zero, a.parse("", 32));
+            deepEqual(zero, a.parse("bde", 32));
+            deepEqual(myPure('a', 'bcd', 32), a.parse('abcd', 32));
+            deepEqual(myPure(13, [79, 22], 'oops'), thirteen.parse([13, 79, 22], 'oops'));
+            deepEqual(myPure([12, 13], ["abc"], 123), lis.parse([[12,13], "abc"], 123));
+        });
+        
+        test("satisfy", function() {
+            function cond(x) {
+                return x > 3;
+            }
+            deepEqual(zero, sat(cond).parse([]));
+            deepEqual(zero, sat(cond).parse([2,5,6], "p"));
+            deepEqual(myPure(18, [3, 1], 'oop'), sat(cond).parse([18, 3, 1], 'oop'));
+        });
+        
+        test("many0", function() {
+            var as = literal('a').many0();
+            deepEqual(myPure([], 'bbb', 3), as.parse("bbb", 3));
+            deepEqual(myPure(['a', 'a', 'a'], 'bcd', 3), as.parse('aaabcd', 3));
+            deepEqual(error('oops -- an error'), err('oops -- an error').many0().parse('abc'));
+        });
+        
+        test("many1", function() {
+            var as = literal('a').many1();
+            deepEqual(zero, as.parse("bbb"));
+            deepEqual(myPure(['a', 'a'], 'bbb', 4), as.parse('aabbb', 4));
+            deepEqual(error('hi'), err('hi').many1().parse('abc'));
+        });
+        
+        test("all", function() {
+            var tt = all([literal(2), literal(12)]);
+            deepEqual(myPure([], 'abc', 123), all([]).parse('abc', 123));
+            deepEqual(myPure([2, 12], [3,4], 'oop'), tt.parse([2,12,3,4], 'oop'));
+            deepEqual(zero, tt.parse([2,13,4], 'oop'));
+            deepEqual(error('no'), all([err('no'), item]).parse("abc", 123));
+        });
+        
+        test("app", function() {
+			function f3(x,y,z) {
+				return x + z;
+			}
+			var p = Parser.app(f3, item, literal(-1), item);
+			deepEqual(zero, p.parse([18, -2, 27, 3, 4], 'st'));
+			deepEqual(zero, p.parse([18, -1], 'st'));
+			deepEqual(myPure(45, [3,4], 'st'), p.parse([18, -1, 27, 3, 4], 'st'));
+			deepEqual(error('blah'), Parser.app(f3, err('blah')).parse([1,2,3]));
+        });
+        
+        test("optional", function() {
+            deepEqual(myPure(4, 'bcde', 123), literal('a').optional(4).parse('bcde', 123));
+            deepEqual(myPure('a', 'bcd', 123), literal('a').optional(4).parse('abcd', 123));
+        });
+        
+        test("not0", function() {
+            ok(0, "unimplemented");
+        });
+        
+        test("not1", function() {
+            ok(0, "unimplemented");
+        });
+        
+        test("commit", function() {
+            deepEqual(error('blegg'), literal('a').commit('blegg').parse("bcde"));
+            deepEqual(myPure('a', 'bcde', 12), item.commit('???').parse('abcde', 12));
+            deepEqual(error('inner'), err('inner').commit('outer').parse('abcde'));
+        });
+        
+        test("seq2L", function() {
+            var p = item.seq2L(literal('b'));
+            deepEqual(myPure('a', 'cde', 12), p.parse('abcde', 12));
+            deepEqual(zero, p.parse("acdef", 12));
+        });
+        
+        test("seq2R", function() {
+            var p = item.seq2R(literal('b'));
+            deepEqual(myPure('b', 'cde', 12), p.parse('abcde', 12));
+            deepEqual(zero, p.parse("acdef", 12));
+        });
+        
+        test("string", function() {
+            var p = string('public');
+            deepEqual(myPure('public', 'ness', 13), p.parse("publicness", 13));
+            deepEqual(zero, p.parse("pub-a-thon", 13));
+        });
+        
+        test("any", function() {
+            var p = any([literal('a'), literal('b'), string("zyx")]);
+            deepEqual(myPure('a', '123', 14), p.parse('a123', 14));
+            deepEqual(myPure('b', '123', 14), p.parse('b123', 14));
+            deepEqual(myPure('zyx', '123', 14), p.parse('zyx123', 14));
+            deepEqual(zero, p.parse("c123", 14));
+            deepEqual(error('oops'), any([p, err('oops')]).parse('cde', 14));
         });
     };
 
