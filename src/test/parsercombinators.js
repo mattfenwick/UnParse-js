@@ -73,23 +73,34 @@ define(["app/parser", "app/maybeerror"], function (Parser, MaybeError) {
         });
         
         test("get", function() {
-            ok(0, "unimplemented");
+            deepEqual(myPure('abc', 'abc', 12), Parser.get.parse('abc', 12));
+            deepEqual(zero, Parser.zero.seq2R(Parser.get).parse('abc', 123));
+            deepEqual(error('oops'), err('oops').seq2R(Parser.get).parse('abc', 123));
         });
 
         test("put", function() {
-            ok(0, "unimplemented");
+            deepEqual(myPure(null, 'abc', 12), Parser.put('abc').parse('def', 12));
+            deepEqual(zero, Parser.zero.seq2R(Parser.put('abc')).parse('def', 12));
+            deepEqual(error('oops'), err('oops').seq2R(Parser.put('abc')).parse('def', 12));
         });
 
         test("getState", function() {
-            ok(0, "unimplemented");
+            deepEqual(myPure(12, 'abc', 12), Parser.getState.parse('abc', 12));
+            deepEqual(zero, Parser.zero.seq2R(Parser.getState).parse('abc', 123));
+            deepEqual(error('oops'), err('oops').seq2R(Parser.getState).parse('abc', 123));
         });
 
         test("putState", function() {
-            ok(0, "unimplemented");
+            deepEqual(myPure(null, 'def', 27), Parser.putState(27).parse('def', 12));
+            deepEqual(zero, Parser.zero.seq2R(Parser.putState(27)).parse('def', 12));
+            deepEqual(error('oops'), err('oops').seq2R(Parser.putState(27)).parse('def', 12));
         });
 
         test("updateState", function() {
-            ok(0, "unimplemented");
+            function inc(x) {return x + 1;}
+            deepEqual(myPure(null, 'abc', 13), Parser.updateState(inc).parse('abc', 12));
+            deepEqual(zero, Parser.zero.seq2R(Parser.updateState(inc)).parse('abc', 123));
+            deepEqual(error('oops'), err('oops').seq2R(Parser.updateState(inc)).parse('abc', 123));
         });
 
         test("check", function() {
@@ -171,11 +182,15 @@ define(["app/parser", "app/maybeerror"], function (Parser, MaybeError) {
         });
         
         test("not0", function() {
-            ok(0, "unimplemented");
+            deepEqual(zero, item.not0().parse("abc"));
+            deepEqual(myPure(null, '', 12), item.not0().parse('', 12));
+            deepEqual(myPure(null, 'def', 12), literal('q').not0().parse('def', 12));
         });
         
         test("not1", function() {
-            ok(0, "unimplemented");
+            deepEqual(zero, item.not1().parse("abc"));
+            deepEqual(zero, item.not1().parse('', 12));
+            deepEqual(myPure('d', 'ef', 12), literal('q').not1().parse('def', 12));
         });
         
         test("commit", function() {

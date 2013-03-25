@@ -104,33 +104,33 @@ define(function() {
         };
         
         // Parser t e s [t]
-        Parser.get = new Parser(function(s, xs) {
-            return good(s, xs, xs);
+        Parser.get = new Parser(function(xs, s) {
+            return good(xs, xs, s);
         });
         
         // [t] -> Parser t e s ()
         Parser.put = function(xs) {
-            return new Parser(function(s, _xs_) {
-                return good(s, xs, null);
+            return new Parser(function(_xs_, s) {
+                return good(null, xs, s);
             });
         };
 
         // Parser t e s s
-        Parser.getState = new Parser(function(s, xs) {
+        Parser.getState = new Parser(function(xs, s) {
             return good(s, xs, s);
         });
 
         // s -> Parser t e s ()
         Parser.putState = function(s) {
-            return new Parser(function(_s_, xs) {
-                return good(s, xs, null);
+            return new Parser(function(xs, _s_) {
+                return good(null, xs, s);
             });
         };
         
         // (s -> s) -> Parser t e s ()
         Parser.updateState = function(f) {
-            return new Parser(function(s, xs) {
-                return good(f(s), xs, null);
+            return new Parser(function(xs, s) {
+                return good(null, xs, f(s));
             });
         };
         // how about:
