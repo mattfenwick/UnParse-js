@@ -53,7 +53,7 @@ define(["app/parser"], function(Parser) {
                 if(!newBs) {return Parser.error({message: "unmatched brace", brace: t});}
                 var top = newBs[0],
                     rest = newBs[1];
-                if(!top) {alert("fuck me in the ass and call me gay");}
+                if(!top) {alert("oops .... unexpected error");}
                 if ( matches(top, t) ) {
                     return Parser.putState(rest).seq2R(Parser.pure(t));
                 }
