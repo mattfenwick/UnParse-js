@@ -167,9 +167,7 @@ define(function() {
             if(typeof eq !== 'function') {
                 reportError('literal', 'TypeError', 'function', eq);
             }
-            return Parser.item.check(function (y) {
-                                         return eq(x, y);
-                                     });
+            return Parser.item.check(eq.bind(null, x));
         };
         
         // (t -> Bool) -> Parser t e s t
@@ -291,22 +289,13 @@ define(function() {
             return Parser.all([this, p]).fmap(function(x) {return x[1];});
         };
         
-        // purpose:  '[].map' passes in index also
-        //   which messed up literal because it
-        //   expects 2nd arg to be a function or undefined
-        // this function ensures that doesn't happen
-        function safeMap(array, f) {
-            var out = [], i;
-            for(i = 0; i < array.length; i++) {
-                out.push(f(array[i]));
-            }
-            return out;
-        }
-        
         // [t] -> Parser t e s [t]
-        // n.b.:  [t] != string !!!
-        Parser.string = function(str) {
-            return Parser.all(safeMap(str, Parser.literal)).seq2R(Parser.pure(str));
+        Parser.string = function(str, f) {
+            var ps = [];
+            for(var i = 0; i < str.length; i++) {
+                ps.push(Parser.literal(str[i], f));
+            }
+            return Parser.all(ps).seq2R(Parser.pure(str));
         };
 
         // [Parser t e s a] -> Parser t e s a

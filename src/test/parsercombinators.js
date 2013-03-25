@@ -215,6 +215,10 @@ define(["app/parser", "app/maybeerror"], function (Parser, MaybeError) {
             var p = string('public');
             deepEqual(myPure('public', 'ness', 13), p.parse("publicness", 13));
             deepEqual(zero, p.parse("pub-a-thon", 13));
+            function eq(x, y) {
+                return x[0] === y;
+            }
+            deepEqual(myPure([['a',1],['b',2]], 'cd', 2), string([['a', 1], ['b', 2]], eq).parse('abcd', 2));
         });
         
         test("any", function() {
