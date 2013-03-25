@@ -3,7 +3,7 @@ define(function() {
 
     function ParserFactory(Type) {
         
-        // ([t] -> s -> ME ([t], s, a)) -> Parser s t a
+        // ([t] -> s -> ME e (a, [t], s)) -> Parser t e s a
         function Parser(f) {
             this.parse = f;
         }
@@ -22,7 +22,7 @@ define(function() {
         }
 
         
-        // Parser t s t
+        // Parser t e s t
         Parser.item = new Parser(function(xs, s) {
             if(xs.length === 0) {
                 return Type.zero;
@@ -31,7 +31,7 @@ define(function() {
             return good(x, xs.slice(1), s);
         });
         
-        // (a -> b) -> Parser t s a -> Parser t s b
+        // (a -> b) -> Parser t e s a -> Parser t e s b
         Parser.prototype.fmap = function(f) {
             if(typeof f !== 'function') {
                 reportError('fmap', 'TypeError', 'function', f);
@@ -44,7 +44,7 @@ define(function() {
             });
         };
         
-        // a -> Parser t s a
+        // a -> Parser t e s a
         Parser.pure = function(x) {
             return new Parser(function(xs, s) {
                 return good(x, xs, s);
@@ -53,7 +53,7 @@ define(function() {
         
         // skipping Applicative ... for now
         
-        // Parser t s a -> (a -> Parser t s b) -> Parser t s b
+        // Parser t e s a -> (a -> Parser t e s b) -> Parser t e s b
         Parser.prototype.bind = function(f) {
             if(typeof f !== 'function') {
                 reportError('bind', 'TypeError', 'function', f);
@@ -69,7 +69,7 @@ define(function() {
             });
         };
         
-        // Parser t s a -> Parser t s a -> Parser t s a
+        // Parser t e s a -> Parser t e s a -> Parser t e s a
         Parser.prototype.plus = function(that) {
             if(!(that instanceof Parser)) {
                 reportError('plus', 'TypeError', 'Parser', that);
@@ -80,19 +80,19 @@ define(function() {
             });
         };
         
-        // Parser t s a
+        // Parser t e s a
         Parser.zero = new Parser(function(xs, s) {
             return Type.zero;
         });
         
-        // Parser t s a
+        // e -> Parser t e s a
         Parser.error = function(value) {
             return new Parser(function(xs, s) {
                 return Type.error(value);
             });
         };
         
-        // (e -> m) -> Parser e t a -> Parser m t a
+        // (e1 -> e2) -> Parser t e1 s a -> Parser t e2 s a
         Parser.prototype.mapError = function(f) {
             if(typeof f !== 'function') {
                 reportError('mapError', 'TypeError', 'function', f);
@@ -103,29 +103,31 @@ define(function() {
             });
         };
         
-        // Parser t [t]
+        // Parser t e s [t]
         Parser.get = new Parser(function(s, xs) {
             return good(s, xs, xs);
         });
         
-        // [t] -> Parser t ()
+        // [t] -> Parser t e s ()
         Parser.put = function(xs) {
             return new Parser(function(s, _xs_) {
                 return good(s, xs, null);
             });
         };
 
+        // Parser t e s s
         Parser.getState = new Parser(function(s, xs) {
             return good(s, xs, s);
         });
 
+        // s -> Parser t e s ()
         Parser.putState = function(s) {
             return new Parser(function(_s_, xs) {
                 return good(s, xs, null);
             });
         };
         
-        // (s -> s) -> Parser s t ()
+        // (s -> s) -> Parser t e s ()
         Parser.updateState = function(f) {
             return new Parser(function(s, xs) {
                 return good(f(s), xs, null);
@@ -138,7 +140,7 @@ define(function() {
         // or:
         //    Parser.getState.bind(compose(Parser.putState, f))
         
-        // (a -> Bool) -> Parser t a -> Parser t a
+        // (a -> Bool) -> Parser t e s a -> Parser t e s a
         Parser.prototype.check = function(p) {
             if(typeof p !== 'function') {
                 reportError('check', 'TypeError', 'function', p);
@@ -159,7 +161,7 @@ define(function() {
             return x === y;
         }
 
-        // t -> Maybe (t -> t -> Bool) -> Parser t t    
+        // t -> Maybe (t -> t -> Bool) -> Parser t e s t    
         Parser.literal = function(x, f) {
             var eq = f ? f : equality;
             if(typeof eq !== 'function') {
@@ -170,7 +172,7 @@ define(function() {
                                      });
         };
         
-        // (t -> Bool) -> Parser t t
+        // (t -> Bool) -> Parser t e s t
         Parser.satisfy = function(pred) {
             if(typeof pred !== 'function') {
                 reportError('satisfy', 'TypeError', 'function', pred);
@@ -178,7 +180,7 @@ define(function() {
             return Parser.item.check(pred);
         };
         
-        // Parser t a -> Parser t [a]
+        // Parser t e s a -> Parser t e s [a]
         Parser.prototype.many0 = function() {
             var self = this;
             return new Parser(function(s, xs) {
@@ -201,12 +203,12 @@ define(function() {
             });
         };
         
-        // Parser t a -> Parser t [a]
+        // Parser t e s a -> Parser t e s [a]
         Parser.prototype.many1 = function() {
             return this.many0().check(function(x) {return x.length > 0;});
         };
 
-        // (a -> b -> ... z) -> (Parser t a, Parser t b, ...) -> Parser t z
+        // (a -> ... z) -> (Parser t e s a, ...) -> Parser t e s z
         // example:   app(myFunction, parser1, parser2, parser3, parser4)
         Parser.app = function(f, ps__) {
             var p = Parser.all(Array.prototype.slice.call(arguments, 1));
@@ -215,12 +217,12 @@ define(function() {
             });
         };
         
-        // a -> Parser t a -> Parser t a
+        // a -> Parser t e s a -> Parser t e s a
         Parser.prototype.optional = function(x) {
             return this.plus(Parser.pure(x));
         };
         
-        // [Parser t a] -> Parser t [a]
+        // [Parser t e s a] -> Parser t e s [a]
         Parser.all = function(ps) {
             ps.map(function(p) {
                 if(!(p instanceof Parser)) {
@@ -248,7 +250,7 @@ define(function() {
             });
         };
         
-        // Parser t a -> Parser t ()
+        // Parser t e s a -> Parser t e s ()
         Parser.prototype.not0 = function() {
             var self = this;
             return new Parser(function(s, xs) {
@@ -263,16 +265,17 @@ define(function() {
             });
         };
         
-        // Parser t a -> Parser t t
+        // Parser t e s a -> Parser t e s t
         Parser.prototype.not1 = function() {
             return this.not0().seq2R(Parser.item);
         };
         
-        // e -> Parser e t a
+        // Parser t e s a -> e -> Parser t e s a
         Parser.prototype.commit = function(e) {
             return this.plus(Parser.error(e));
         };
         
+        // Parser t e s a -> Parser t e s b -> Parser t e s a
         Parser.prototype.seq2L = function(p) {
             if(!(p instanceof Parser)) {
                 reportError('seq2L', 'TypeError', 'Parser', p);
@@ -280,6 +283,7 @@ define(function() {
             return Parser.all([this, p]).fmap(function(x) {return x[0];});
         };
         
+        // Parser t e s a -> Parser t e s b -> Parser t e s b
         Parser.prototype.seq2R = function(p) {
             if(!(p instanceof Parser)) {
                 reportError('seq2R', 'TypeError', 'Parser', p);
@@ -299,13 +303,13 @@ define(function() {
             return out;
         }
         
-        // [t] -> Parser t [t]
+        // [t] -> Parser t e s [t]
         // n.b.:  [t] != string !!!
         Parser.string = function(str) {
             return Parser.all(safeMap(str, Parser.literal)).seq2R(Parser.pure(str));
         };
 
-        // [Parser t a] -> Parser t a
+        // [Parser t e s a] -> Parser t e s a
         Parser.any = function (ps) {
             ps.map(function(p) {
                 if(!(p instanceof Parser)) {
