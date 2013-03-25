@@ -3,7 +3,7 @@ define(function() {
 
     function ParserFactory(Type) {
         
-        // (s -> [t] -> ME (s, [t], a)) -> Parser s t a
+        // ([t] -> s -> ME ([t], s, a)) -> Parser s t a
         function Parser(f) {
             this.parse = f;
         }
@@ -13,80 +13,81 @@ define(function() {
                    expected: expected, actual: actual}));
         }
 
-        function result(state, rest, value) {
+        function result(value, rest, state) {
             return {state: state, rest: rest, result: value};
         }
         
-        function good(state, rest, value) {
-            return Type.pure(result(state, rest, value));
+        function good(value, rest, state) {
+            return Type.pure(result(value, rest, state));
         }
 
         
-        // (s -> t -> s) -> Parser s t t
-        Parser.item = new Parser(function(s, xs) {
+        // Parser t s t
+        Parser.item = new Parser(function(xs, s) {
             if(xs.length === 0) {
                 return Type.zero;
             }
             var x = xs[0];
-            return good(s, xs.slice(1), x);
+            return good(x, xs.slice(1), s);
         });
         
-        // (a -> b) -> Parser t a -> Parser t b
+        // (a -> b) -> Parser t s a -> Parser t s b
         Parser.prototype.fmap = function(f) {
             if(typeof f !== 'function') {
                 reportError('fmap', 'TypeError', 'function', f);
             }
             var self = this;
-            return new Parser(function(s, xs) {
-                return self.parse(s, xs).fmap(function(r) {
-                    return result(r.state, r.rest, f(r.result));
+            return new Parser(function(xs, s) {
+                return self.parse(xs, s).fmap(function(r) {
+                    return result(f(r.result), r.rest, r.state);
                 });
             });
         };
         
-        // a -> Parser t a
+        // a -> Parser t s a
         Parser.pure = function(x) {
-            return new Parser(function(s, xs) {
-                return good(s, xs, x);
+            return new Parser(function(xs, s) {
+                return good(x, xs, s);
             });
         };
         
         // skipping Applicative ... for now
         
-        // m a -> (a -> m b) -> m b
-        // ([t] -> m ([t], a)) -> (a -> [t] -> m ([t], b)) -> [t] -> m ([t], b)
+        // Parser t s a -> (a -> Parser t s b) -> Parser t s b
         Parser.prototype.bind = function(f) {
             if(typeof f !== 'function') {
                 reportError('bind', 'TypeError', 'function', f);
             }
             var self = this;
-            return new Parser(function(s, xs) {
-                var r = self.parse(s, xs),
+            return new Parser(function(xs, s) {
+                var r = self.parse(xs, s),
                     val = r.value;
                 if(r.status === 'success') {
-                    return f(val.result).parse(val.state, val.rest);
+                    return f(val.result).parse(val.rest, val.state);
                 }
                 return r;
             });
         };
         
+        // Parser t s a -> Parser t s a -> Parser t s a
         Parser.prototype.plus = function(that) {
             if(!(that instanceof Parser)) {
                 reportError('plus', 'TypeError', 'Parser', that);
             }
             var self = this;
-            return new Parser(function(s, xs) {
-                return self.parse(s, xs).plus(that.parse(s, xs));
+            return new Parser(function(xs, s) {
+                return self.parse(xs, s).plus(that.parse(xs, s));
             });
         };
         
-        Parser.zero = new Parser(function(s, xs) {
+        // Parser t s a
+        Parser.zero = new Parser(function(xs, s) {
             return Type.zero;
         });
         
-        // Parser [t] t a
+        // Parser t s a
         Parser.error = function(value) {
-            return new Parser(function(s, xs) {
+            return new Parser(function(xs, s) {
                 return Type.error(value);
             });
         };
