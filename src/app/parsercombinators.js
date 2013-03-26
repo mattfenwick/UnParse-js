@@ -22,15 +22,6 @@ define(function() {
         }
 
         
-        // Parser t e s t
-        Parser.item = new Parser(function(xs, s) {
-            if(xs.length === 0) {
-                return Type.zero;
-            }
-            var x = xs[0];
-            return good(x, xs.slice(1), s);
-        });
-        
         // (a -> b) -> Parser t e s a -> Parser t e s b
         Parser.prototype.fmap = function(f) {
             if(typeof f !== 'function') {
@@ -115,6 +106,15 @@ define(function() {
             });
         };
 
+        // Parser t e s t
+        Parser.item = new Parser(function(xs, s) {
+            if(xs.length === 0) {
+                return Type.zero;
+            }
+            var x = xs[0];
+            return good(x, xs.slice(1), s);
+        });
+        
         // Parser t e s s
         Parser.getState = new Parser(function(xs, s) {
             return good(s, xs, s);
@@ -239,13 +239,29 @@ define(function() {
         Parser.app = function(f, ps__) {
             var p = Parser.all(Array.prototype.slice.call(arguments, 1));
             return p.fmap(function(rs) {
-                return f.apply(undefined, rs); // 'undefined' gets bound to 'this' inside f
+                return f.apply(undefined, rs);
             });
         };
         
-        // a -> Parser t e s a -> Parser t e s a
+        // Parser t e s a -> a -> Parser t e s a
         Parser.prototype.optional = function(x) {
             return this.plus(Parser.pure(x));
+        };
+        
+        // Parser t e s a -> Parser t e s b -> Parser t e s a
+        Parser.prototype.seq2L = function(p) {
+            if(!(p instanceof Parser)) {
+                reportError('seq2L', 'TypeError', 'Parser', p);
+            }
+            return Parser.all([this, p]).fmap(function(x) {return x[0];});
+        };
+        
+        // Parser t e s a -> Parser t e s b -> Parser t e s b
+        Parser.prototype.seq2R = function(p) {
+            if(!(p instanceof Parser)) {
+                reportError('seq2R', 'TypeError', 'Parser', p);
+            }
+            return Parser.all([this, p]).fmap(function(x) {return x[1];});
         };
         
         // Parser t e s a -> Parser t e s ()
@@ -273,22 +289,6 @@ define(function() {
             return this.plus(Parser.error(e));
         };
         
-        // Parser t e s a -> Parser t e s b -> Parser t e s a
-        Parser.prototype.seq2L = function(p) {
-            if(!(p instanceof Parser)) {
-                reportError('seq2L', 'TypeError', 'Parser', p);
-            }
-            return Parser.all([this, p]).fmap(function(x) {return x[0];});
-        };
-        
-        // Parser t e s a -> Parser t e s b -> Parser t e s b
-        Parser.prototype.seq2R = function(p) {
-            if(!(p instanceof Parser)) {
-                reportError('seq2R', 'TypeError', 'Parser', p);
-            }
-            return Parser.all([this, p]).fmap(function(x) {return x[1];});
-        };
-        
         // [t] -> Parser t e s [t]
         Parser.string = function(str, f) {
             var ps = [];
@@ -305,11 +305,11 @@ define(function() {
                     reportError('any', 'TypeError', 'Parser', p);
                 }
             });
-            return new Parser(function(s, xs) {
+            return new Parser(function(xs, s) {
                 var r = Type.zero,
                     i;
                 for(i = 0; i < ps.length; i++) {
-                    r = ps[i].parse(s, xs);
+                    r = ps[i].parse(xs, s);
                     if(r.status === 'success' || r.status === 'error') {
                         return r;
                     }
