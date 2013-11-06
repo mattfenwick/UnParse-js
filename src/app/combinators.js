@@ -9,9 +9,30 @@ define(["app/maybeerror"], function(M) {
         this.parse = f;
     }
     
-    function reportError(fName, type, expected, actual) {
-        throw new Error(JSON.stringify({type: type, function: fName,
-               expected: expected, actual: actual}));
+    function checkFunction(fName, actual) {
+        if ( typeof actual !== 'function' ) {
+            var obj = {
+                'message' : 'type error', 
+                'function': fName,
+                'expected': 'function', 
+                'actual'  : actual
+            };
+            throw new Error(JSON.stringify(obj));
+        }
+        // else:  nothing to do
+    }
+
+    function checkParser(fName, actual) {
+        if ( !(actual instanceof Parser) ) {
+            var obj = {
+                'message' : 'type error', 
+                'function': fName,
+                'expected': 'Parser', 
+                'actual'  : actual
+            };
+            throw new Error(JSON.stringify(obj));
+        }
+        // else:  nothing to do
     }
 
     function result(value, rest, state) {
@@ -32,9 +53,7 @@ define(["app/maybeerror"], function(M) {
         /*
         (a -> b) -> Parser e s (m t) a -> Parser e s (m t) b
         */
-        if(typeof f !== 'function') {
-            reportError('fmap', 'TypeError', 'function', f);
-        }
+        checkFunction('fmap', g);
         function h(r) {
             return result(g(r.result), r.rest, r.state);
         }
@@ -55,6 +74,8 @@ define(["app/maybeerror"], function(M) {
         /*
         Parser e s (m t) a -> (a -> Parser e s (m t) b) -> Parser e s (m t) b
         */
+        checkParser('bind', parser);
+        checkFunction('bind', g);
         function f(xs, s) {
             var r = parser.parse(xs, s),
                 val = r.value;
@@ -64,7 +85,7 @@ define(["app/maybeerror"], function(M) {
                 return r;
             }
         }
-        return new Parse(f);
+        return new Parser(f);
     }
     
     function error(e) {
@@ -81,6 +102,8 @@ define(["app/maybeerror"], function(M) {
         /*
         Parser e s (m t) a -> (e -> Parser e s (m t) a) -> Parser e s (m t) a
         */
+        checkFunction('catchError', f);
+        checkParser('catchError', parser);
         function g(xs, s) {
             var v = parser.parse(xs, s)
             if ( v.status === 'error' ) {
@@ -92,6 +115,8 @@ define(["app/maybeerror"], function(M) {
     }
 
     function mapError(f, parser) {
+        checkFunction('mapError', f);
+        checkParser('mapError', parser);
         /*
         Parser e s (m t) a -> (e -> e) -> Parser e s (m t) a
         */
@@ -122,6 +147,7 @@ define(["app/maybeerror"], function(M) {
         /*
         (s -> s) -> Parser e s (m t) a
         */
+        checkFunction('updateState', g);
         function f(xs, s) {
             return good(None, xs, g(s));
         }
@@ -132,6 +158,8 @@ define(["app/maybeerror"], function(M) {
         /*
         (a -> Bool) -> Parser e s (m t) a -> Parser e s (m t) a
         */
+        checkFunction('check', predicate);
+        checkParser('check', parser);
         function f(xs, s) {
             var r = parser.parse(xs, s);
             if ( r.status !== 'success' ) {
@@ -145,24 +173,26 @@ define(["app/maybeerror"], function(M) {
     }
     
     function many0(parser):
-    /*
-    Parser e s (m t) a -> Parser e s (m t) [a]
-    */
-    function f(xs, s) {
-        var vals = [],
-            tokens = xs,
-            state = s,
-            r;
-        while ( true ) {
-            r = parser.parse(tokens, state);
-            if ( r.status === 'success' ) {
-                vals.push(r.value.result);
-                state = r.value.state;
-                tokens = r.value.rest;
-            } else if ( r.status === 'failure' ) {
-                return good(vals, tokens, state);
-            } else { // must respect errors
-                return r;
+        /*
+        Parser e s (m t) a -> Parser e s (m t) [a]
+        */
+        checkParser('many0', parser);
+        function f(xs, s) {
+            var vals = [],
+                tokens = xs,
+                state = s,
+                r;
+            while ( true ) {
+                r = parser.parse(tokens, state);
+                if ( r.status === 'success' ) {
+                    vals.push(r.value.result);
+                    state = r.value.state;
+                    tokens = r.value.rest;
+                } else if ( r.status === 'failure' ) {
+                    return good(vals, tokens, state);
+                } else { // must respect errors
+                    return r;
+                }
             }
         }
         return new Parser(f);
@@ -172,6 +202,7 @@ define(["app/maybeerror"], function(M) {
         /*
         Parser e s (m t) a -> Parser e s (m t) [a]
         */
+        checkParser('many1', parser);
         return check(function(x) {return x.length > 0;}, many0(parser));
     }
 
@@ -184,6 +215,7 @@ define(["app/maybeerror"], function(M) {
         [Parser e s (m t) a] -> Parser e s (m t) [a]
         */
         var parsers = _get_args(arguments, 0);
+        parsers.map(checkParser.bind(null, 'seq')); // can I use `forEach` here instead of `map`?
         function f(xs, s) {
             var vals = [],
                 state = s,
@@ -206,6 +238,8 @@ define(["app/maybeerror"], function(M) {
     
     def app(f) {
         var parsers = _get_args(arguments, 1);
+        checkFunction('app', f);
+        parsers.map(checkParser.bind(null, 'app')); // can I use `forEach` here as well?
         function g {
             return f.apply(undefined, _get_args(arguments, 0));
         }
@@ -216,6 +250,7 @@ define(["app/maybeerror"], function(M) {
         /*
         Parser e s (m t) a -> a -> Parser e s (m t) a
         */
+        checkParser('optional', parser);
         return alt(parser, pure(default));
     }
     
@@ -231,6 +266,8 @@ define(["app/maybeerror"], function(M) {
         /*
         Parser e s (m t) a -> Parser e s (m t) b -> Parser e s (m t) a
         */
+        checkParser('seq2L', self);
+        checkParser('seq2L', other);
         return app(_first, self, other);
     }
     
@@ -238,6 +275,8 @@ define(["app/maybeerror"], function(M) {
         /*
         Parser e s (m t) a -> Parser e s (m t) b -> Parser e s (m t) b
         */
+        checkParser('seq2R', self);
+        checkParser('seq2R', other);
         return app(_second, self, other);
     }
 
@@ -245,6 +284,7 @@ define(["app/maybeerror"], function(M) {
         /*
         Parser e s (m t) a -> Parser e s (m t) None
         */
+        checkParser('lookahead', parser);
         return bind(get, function(xs) {return seq2R(parser, put(xs));});
     }
     
@@ -252,6 +292,7 @@ define(["app/maybeerror"], function(M) {
         /*
         Parser e s (m t) a -> Parser e s (m t) None
         */
+        checkParser('not0', parser);
         function f(xs, s) {
             var r = parser.parse(xs, s);
             if ( r.status === 'error' ) {
@@ -269,6 +310,7 @@ define(["app/maybeerror"], function(M) {
         /*
         Parser e s (m t) a -> e -> Parser e s (m t) a
         */
+        checkParser('commit', parser);
         return alt(parser, error(e));
     }
     
@@ -277,6 +319,7 @@ define(["app/maybeerror"], function(M) {
         [Parser e s (m t) a] -> Parser e s (m t) a
         */
         var parsers = _get_args(arguments, 0);
+        parsers.map(checkError.bind(null, 'alt')); // use `forEach` here, too?
         function f(xs, s) {
             var r = M.zero;
             for(var i = 0; i < parsers.length; i++) {
@@ -299,281 +342,136 @@ define(["app/maybeerror"], function(M) {
     # Parser e s (m t) s
     var getState = new Parser(function(xs, s) {return good(s, xs, s);});
 
-    // STOPPED HERE!  Haven't merged in error checks yet from the old javascript code
+    /*
+    item :: Parser e s (m t) t
+    `item` is the most basic parser and should:
+     - succeed, consuming one single token if there are any tokens left
+     - fail if there are no tokens left
+    */
+    function Itemizer(item) {
+        checkParser('Itemizer', item);
+        this.item = item;
+    }
+    
+    Itemizer.prototype.literal = function(x) {
+        /*
+        Eq t => t -> Parser e s (m t) t
+        */
+        return check(function(y) {return x === y;}, this.item); // what about other notions of equality ??
+    };
+    
+    Itemizer.prototype.satisfy = function(pred) {
+        /*
+        (t -> Bool) -> Parser e s (m t) t
+        */
+        checkFunction('satisfy', pred);
+        return check(pred, self.item);
+    };
+    
+    Itemizer.prototype.not1 = function(parser) {
+        /*
+        Parser e s (m t) a -> Parser e s (m t) t
+        */
+        checkParser('not1', parser);
+        return seq2R(not0(parser), this.item);
+    };
+
+    Itemizer.prototype.string = function(elems) {
+        /*
+        Eq t => [t] -> Parser e s (m t) [t] 
+        */
+        var matcher = seq.apply(undefined, elems.map(this.literal));
+        return seq2R(matcher, pure(elems));
+    }
+    
+    function _build_set(elems) {
+        var obj = {};
+        elems.map(function(e) {
+            obj[e] = null; // is null good enough to make `key in obj` evaluate to true?
+        });
+        return obj;
+    }
+    
+    Itemizer.prototype.oneOf = function(elems) {
+        var c_set = _build_set(elems);
+        return this.satisfy(function(x) {return x in c_set;}); // does this hit prototype properties ... ???
+    };
+    
+    function _f_item_basic(xs, s) {
+        /*
+        Simply consumes a single token if one is available, presenting that token
+        as the value.  Fails if token stream is empty.
+        */
+        if ( xs.length === 0 ) {
+            return M.zero;
+        }
+        var first = xs[0],
+            rest = xs.slice(1);
+        return good(first, rest, s);
+    }
+    
+    var basic = Itemizer(new Parser(_f_item_basic));
+
+    function _bump(char, position) {
+        var line = position[0],
+            col = position[1];
+        if ( char === '\n' ) {
+            return [line + 1, 1];
+        }
+        return [line, col + 1];
+    }
+    
+    function _f_position(c) {
+        return seq2R(updateState(function(s) {return _bump(c, s);}), pure(c));
+    }
+    
+    var _item_position = bind(basic.item, _f_position),
+        position = Itemizer(_item_position);
         
-    // Parser t e s a -> (a -> Parser t e s b) -> Parser t e s b
-    Parser.prototype.bind = function(f) {
-        if(typeof f !== 'function') {
-            reportError('bind', 'TypeError', 'function', f);
-        }
-        var self = this;
-        return new Parser(function(xs, s) {
-            var r = self.parse(xs, s),
-                val = r.value;
-            if(r.status === 'success') {
-                return f(val.result).parse(val.rest, val.state);
-            }
-            return r;
-        });
-    };
-    
-    // Parser t e s a -> Parser t e s a -> Parser t e s a
-    Parser.prototype.plus = function(that) {
-        if(!(that instanceof Parser)) {
-            reportError('plus', 'TypeError', 'Parser', that);
-        }
-        var self = this;
-        return new Parser(function(xs, s) {
-            return self.parse(xs, s).plus(that.parse(xs, s));
-        });
-    };
-    
-    // Parser t e s a
-    Parser.zero = new Parser(function(xs, s) {
-        return Type.zero;
-    });
-    
-    // e -> Parser t e s a
-    Parser.error = function(value) {
-        return new Parser(function(xs, s) {
-            return Type.error(value);
-        });
-    };
-    
-    // (e1 -> e2) -> Parser t e1 s a -> Parser t e2 s a
-    Parser.prototype.mapError = function(f) {
-        if(typeof f !== 'function') {
-            reportError('mapError', 'TypeError', 'function', f);
-        }
-        var self = this;
-        return new Parser(function(xs, s) {
-            return self.parse(xs, s).mapError(f);
-        });
-    };
-    
-    // Parser t e s [t]
-    Parser.get = new Parser(function(xs, s) {
-        return good(xs, xs, s);
-    });
-    
-    // [t] -> Parser t e s ()
-    Parser.put = function(xs) {
-        return new Parser(function(_xs_, s) {
-            return good(null, xs, s);
-        });
-    };
+    var _item_count = seq2L(basic.item, updateState(function(x) {return x + 1;})),
+        count = Itemizer(_item_count);
 
-    // Parser t e s t
-    Parser.item = new Parser(function(xs, s) {
-        if(xs.length === 0) {
-            return Type.zero;
-        }
-        var x = xs[0];
-        return good(x, xs.slice(1), s);
-    });
-    
-    // Parser t e s s
-    Parser.getState = new Parser(function(xs, s) {
-        return good(s, xs, s);
-    });
-
-    // s -> Parser t e s ()
-    Parser.putState = function(s) {
-        return new Parser(function(xs, _s_) {
-            return good(null, xs, s);
-        });
-    };
-    
-    // (s -> s) -> Parser t e s ()
-    Parser.updateState = function(f) {
-        return new Parser(function(xs, s) {
-            return good(null, xs, f(s));
-        });
-    };
-    // how about:
-    //    Parser.getState.bind(function(s) {
-    //        return Parser.putState(f(s));
-    //    });
-    // or:
-    //    Parser.getState.bind(compose(Parser.putState, f))
-    
-    // (a -> Bool) -> Parser t e s a -> Parser t e s a
-    Parser.prototype.check = function(p) {
-        if(typeof p !== 'function') {
-            reportError('check', 'TypeError', 'function', p);
-        }
-        var self = this;
-        return new Parser(function(xs, s) {
-            var r = self.parse(xs, s);
-            if(r.status !== 'success') {
-                return r;
-            } else if(p(r.value.result)) {
-                return r;
-            }
-            return Type.zero;
-        });
-    };
-    
-    function equality(x, y) {
-        return x === y;
+    function run(parser, input_string, state) {
+        /*
+        Run a parser given the token input and state.
+        */
+        return parser.parse(input_string, state);
     }
 
-    // t -> Maybe (t -> t -> Bool) -> Parser t e s t    
-    Parser.literal = function(x, f) {
-        var eq = f ? f : equality;
-        if(typeof eq !== 'function') {
-            reportError('literal', 'TypeError', 'function', eq);
-        }
-        return Parser.item.check(eq.bind(null, x));
-    };
     
-    // (t -> Bool) -> Parser t e s t
-    Parser.satisfy = function(pred) {
-        if(typeof pred !== 'function') {
-            reportError('satisfy', 'TypeError', 'function', pred);
-        }
-        return Parser.item.check(pred);
+    return {
+        'Parser'     : Parser,
+        'Itemizer'   : Itemizer,
+        
+        'fmap'       : fmap,
+        'pure'       : pure,
+        'bind'       : bind,
+        'error'      : error,
+        'catchError' : catchError,
+        'mapError'   : mapError,
+        'put'        : put,
+        'putState'   : putState,
+        'updateState': updateState,
+        'check'      : check,
+        'many0'      : many0,
+        'many1'      : many1,
+        'seq'        : seq,
+        'app'        : app,
+        'optional'   : optional,
+        'seq2L'      : seq2L,
+        'seq2R'      : seq2R,
+        'lookahead'  : lookahead,
+        'not0'       : not0,
+        'commit'     : commit,
+        'alt'        : alt,
+        'zero'       : zero,
+        'get'        : get,
+        'getState'   : getState,
+        
+        'basic'      : basic,
+        'position'   : position,
+        'count'      : count,
+        
+        'run'        : run
     };
-    
-    // Parser t e s a -> Parser t e s [a]
-    Parser.prototype.many0 = function() {
-        var self = this;
-        return new Parser(function(xs, s) {
-            var vals = [],
-                tokens = xs,
-                state = s,
-                r;
-            while(true) {
-                r = self.parse(tokens, state);
-                if(r.status === 'success') {
-                    vals.push(r.value.result);
-                    state = r.value.state;
-                    tokens = r.value.rest;
-                } else if(r.status === 'failure') {
-                    return good(vals, tokens, state);
-                } else { // must respect errors
-                    return r;
-                }
-            }
-        });
-    };
-    
-    // Parser t e s a -> Parser t e s [a]
-    Parser.prototype.many1 = function() {
-        return this.many0().check(function(x) {return x.length > 0;});
-    };
-    
-    // [Parser t e s a] -> Parser t e s [a]
-    Parser.all = function(ps) {
-        ps.map(function(p) {
-            if(!(p instanceof Parser)) {
-                reportError('all', 'TypeError', 'Parser', p);
-            }
-        });
-        return new Parser(function(xs, s) {
-            var vals = [],
-                i, r,
-                state = s,
-                tokens = xs;
-            for(i = 0; i < ps.length; i++) {
-                r = ps[i].parse(tokens, state);
-                if(r.status === 'error') {
-                    return r;
-                } else if(r.status === 'success') {
-                    vals.push(r.value.result);
-                    state = r.value.state;
-                    tokens = r.value.rest;
-                } else {
-                    return Type.zero;
-                }
-            }
-            return Type.pure({state: state, rest: tokens, result: vals});
-        });
-    };
-
-    // (a -> ... z) -> (Parser t e s a, ...) -> Parser t e s z
-    // example:   app(myFunction, parser1, parser2, parser3, parser4)
-    Parser.app = function(f, ps__) {
-        var p = Parser.all(Array.prototype.slice.call(arguments, 1));
-        return p.fmap(function(rs) {
-            return f.apply(undefined, rs);
-        });
-    };
-    
-    // Parser t e s a -> a -> Parser t e s a
-    Parser.prototype.optional = function(x) {
-        return this.plus(Parser.pure(x));
-    };
-    
-    // Parser t e s a -> Parser t e s b -> Parser t e s a
-    Parser.prototype.seq2L = function(p) {
-        if(!(p instanceof Parser)) {
-            reportError('seq2L', 'TypeError', 'Parser', p);
-        }
-        return Parser.all([this, p]).fmap(function(x) {return x[0];});
-    };
-    
-    // Parser t e s a -> Parser t e s b -> Parser t e s b
-    Parser.prototype.seq2R = function(p) {
-        if(!(p instanceof Parser)) {
-            reportError('seq2R', 'TypeError', 'Parser', p);
-        }
-        return Parser.all([this, p]).fmap(function(x) {return x[1];});
-    };
-    
-    // Parser t e s a -> Parser t e s ()
-    Parser.prototype.not0 = function() {
-        var self = this;
-        return new Parser(function(xs, s) {
-            var r = self.parse(xs, s);
-            if(r.status === 'error') {
-                return r;
-            } else if(r.status === 'success') {
-                return Type.zero;
-            } else {
-                return good(null, xs, s);
-            }
-        });
-    };
-    
-    // Parser t e s a -> Parser t e s t
-    Parser.prototype.not1 = function() {
-        return this.not0().seq2R(Parser.item);
-    };
-    
-    // Parser t e s a -> e -> Parser t e s a
-    Parser.prototype.commit = function(e) {
-        return this.plus(Parser.error(e));
-    };
-    
-    // [t] -> Parser t e s [t]
-    Parser.string = function(str, f) {
-        var ps = [];
-        for(var i = 0; i < str.length; i++) {
-            ps.push(Parser.literal(str[i], f));
-        }
-        return Parser.all(ps).seq2R(Parser.pure(str));
-    };
-
-    // [Parser t e s a] -> Parser t e s a
-    Parser.any = function (ps) {
-        ps.map(function(p) {
-            if(!(p instanceof Parser)) {
-                reportError('any', 'TypeError', 'Parser', p);
-            }
-        });
-        return new Parser(function(xs, s) {
-            var r = Type.zero,
-                i;
-            for(i = 0; i < ps.length; i++) {
-                r = ps[i].parse(xs, s);
-                if(r.status === 'success' || r.status === 'error') {
-                    return r;
-                }
-            }
-            return r;
-        });
-    };
-    
-    return THIS_SHOULD_BE_FIXED;
 });
