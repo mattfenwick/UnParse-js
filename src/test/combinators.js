@@ -48,6 +48,13 @@ define(["app/combinators", "app/maybeerror"], function (C, MaybeError) {
             deepEqual(val.parse([3,4,5], {}), good([4,5], {}, 3));
         });
         
+        test("oneOf", function() {
+            var p = iz1.oneOf('abc');
+            deepEqual(p.parse('cqrs', null), good('qrs', null, 'c'));
+            deepEqual(p.parse('aqrs', null), good('qrs', null, 'a'));
+            deepEqual(p.parse('dqrs', null), M.zero);
+        });
+        
         
         module("combinators -- position tokens");
         
@@ -84,6 +91,13 @@ define(["app/combinators", "app/maybeerror"], function (C, MaybeError) {
             deepEqual(val.parse('345', [1, 1]), good('45', [1, 2], '3'));
         });
         
+        test("oneOf", function() {
+            var p = iz2.oneOf('abc');
+            deepEqual(p.parse('cqrs', [3,4]), good('qrs', [3,5], 'c'));
+            deepEqual(p.parse('aqrs', [8,1]), good('qrs', [8,2], 'a'));
+            deepEqual(p.parse('dqrs', [2,2]), M.zero);
+        });
+
         
         module("combinators -- count tokens");
         
@@ -118,6 +132,13 @@ define(["app/combinators", "app/maybeerror"], function (C, MaybeError) {
             var val = iz3.not1(iz3.literal('2'));
             deepEqual(val.parse('234', 61), M.zero);
             deepEqual(val.parse('345', 61), good('45', 62, '3'));
+        });
+        
+        test("oneOf", function() {
+            var p = iz3.oneOf('abc');
+            deepEqual(p.parse('cqrs', 4), good('qrs', 5, 'c'));
+            deepEqual(p.parse('aqrs', 8), good('qrs', 9, 'a'));
+            deepEqual(p.parse('dqrs', 7), M.zero);
         });
         
         

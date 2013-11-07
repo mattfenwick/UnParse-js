@@ -394,9 +394,9 @@ define(["app/maybeerror"], function(M) {
     
     function _build_set(elems) {
         var obj = {};
-        elems.map(function(e) {
-            obj[e] = null; // is null good enough to make `key in obj` evaluate to true?
-        });
+        for(var i = 0; i < elems.length; i++) {
+            obj[elems[i]] = 1;
+        }
         return obj;
     }
     
