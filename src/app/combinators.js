@@ -36,7 +36,11 @@ define(["app/maybeerror"], function(M) {
     }
 
     function result(value, rest, state) {
-        return {state: state, rest: rest, result: value};
+        return {
+            'state' : state, 
+            'rest'  : rest, 
+            'result': value
+        };
     }
     
     function good(value, rest, state) {
@@ -98,7 +102,7 @@ define(["app/maybeerror"], function(M) {
         return new Parser(f);
     }
     
-    function catchError(f, parser):
+    function catchError(f, parser) {
         /*
         Parser e s (m t) a -> (e -> Parser e s (m t) a) -> Parser e s (m t) a
         */
@@ -128,7 +132,7 @@ define(["app/maybeerror"], function(M) {
         m t -> Parser e s (m t) a
         */
         function f(_xs_, s) {
-            return good(undefined, xs, s);
+            return good(null, xs, s);
         }
         return new Parser(f);
     }
@@ -138,7 +142,7 @@ define(["app/maybeerror"], function(M) {
         s -> Parser e s (m t) a
         */
         function f(xs, _s_) {
-            return good(undefined, xs, s);
+            return good(null, xs, s);
         }
         return new Parser(f);
     }
@@ -149,7 +153,7 @@ define(["app/maybeerror"], function(M) {
         */
         checkFunction('updateState', g);
         function f(xs, s) {
-            return good(None, xs, g(s));
+            return good(null, xs, g(s));
         }
         return new Parser(f);
     }
@@ -172,7 +176,7 @@ define(["app/maybeerror"], function(M) {
         return new Parser(f);
     }
     
-    function many0(parser):
+    function many0(parser) {
         /*
         Parser e s (m t) a -> Parser e s (m t) [a]
         */
@@ -206,7 +210,7 @@ define(["app/maybeerror"], function(M) {
         return check(function(x) {return x.length > 0;}, many0(parser));
     }
 
-    function _get_args(args) {
+    function _get_args(args, ix) {
         return Array.prototype.slice.call(args, ix);
     }
     
@@ -236,22 +240,22 @@ define(["app/maybeerror"], function(M) {
         return new Parser(f);
     }
     
-    def app(f) {
+    function app(f) {
         var parsers = _get_args(arguments, 1);
         checkFunction('app', f);
         parsers.map(checkParser.bind(null, 'app')); // can I use `forEach` here as well?
-        function g {
-            return f.apply(undefined, _get_args(arguments, 0));
+        function g(args) {
+            return f.apply(undefined, args);
         }
         return fmap(g, seq.apply(undefined, parsers));
     }
     
-    function optional(parser, default) {
+    function optional(parser, default_v) {
         /*
         Parser e s (m t) a -> a -> Parser e s (m t) a
         */
         checkParser('optional', parser);
-        return alt(parser, pure(default));
+        return alt(parser, pure(default_v));
     }
     
     function _first(x, _) {
@@ -300,7 +304,7 @@ define(["app/maybeerror"], function(M) {
             } else if ( r.status === 'success' ) {
                 return M.zero;
             } else {
-                return good(undefined, xs, s);
+                return good(null, xs, s);
             }
         }
         return new Parser(f);
@@ -319,11 +323,11 @@ define(["app/maybeerror"], function(M) {
         [Parser e s (m t) a] -> Parser e s (m t) a
         */
         var parsers = _get_args(arguments, 0);
-        parsers.map(checkError.bind(null, 'alt')); // use `forEach` here, too?
+        parsers.map(checkParser.bind(null, 'alt')); // use `forEach` here, too?
         function f(xs, s) {
             var r = M.zero;
             for(var i = 0; i < parsers.length; i++) {
-                r = p.parse(xs, s);
+                r = parsers[i].parse(xs, s);
                 if ( r.status === 'success' || r.status === 'error' ) {
                     return r;
                 }
@@ -336,10 +340,10 @@ define(["app/maybeerror"], function(M) {
     // Parser e s (m t) a
     var zero = new Parser(function(xs, s) {return M.zero;});
     
-    # Parser e s (m t) (m t)
+    // Parser e s (m t) (m t)
     var get = new Parser(function(xs, s) {return good(xs, xs, s);});
     
-    # Parser e s (m t) s
+    // Parser e s (m t) s
     var getState = new Parser(function(xs, s) {return good(s, xs, s);});
 
     /*
@@ -365,7 +369,7 @@ define(["app/maybeerror"], function(M) {
         (t -> Bool) -> Parser e s (m t) t
         */
         checkFunction('satisfy', pred);
-        return check(pred, self.item);
+        return check(pred, this.item);
     };
     
     Itemizer.prototype.not1 = function(parser) {
@@ -380,7 +384,11 @@ define(["app/maybeerror"], function(M) {
         /*
         Eq t => [t] -> Parser e s (m t) [t] 
         */
-        var matcher = seq.apply(undefined, elems.map(this.literal));
+        var ps = [];
+        for(var i = 0; i < elems.length; i++) { // have to do this b/c strings don't have a `map` method
+            ps.push(this.literal(elems[i]));
+        }
+        var matcher = seq.apply(undefined, ps);
         return seq2R(matcher, pure(elems));
     }
     
@@ -410,7 +418,7 @@ define(["app/maybeerror"], function(M) {
         return good(first, rest, s);
     }
     
-    var basic = Itemizer(new Parser(_f_item_basic));
+    var basic = new Itemizer(new Parser(_f_item_basic));
 
     function _bump(char, position) {
         var line = position[0],
@@ -426,10 +434,10 @@ define(["app/maybeerror"], function(M) {
     }
     
     var _item_position = bind(basic.item, _f_position),
-        position = Itemizer(_item_position);
+        position = new Itemizer(_item_position);
         
     var _item_count = seq2L(basic.item, updateState(function(x) {return x + 1;})),
-        count = Itemizer(_item_count);
+        count = new Itemizer(_item_count);
 
     function run(parser, input_string, state) {
         /*

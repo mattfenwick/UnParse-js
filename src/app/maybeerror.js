@@ -8,51 +8,57 @@ define(function() {
     };
 
     function MaybeError(status, value) {
-        if(!(status in STATUSES)) {
+        if ( !(status in STATUSES) ) {
             throw new Error('invalid MaybeError constructor name: ' + status);
         }
         this.status = status;
         this.value = value;
     }
     
-    MaybeError.prototype.fmap = function(f) {
-        if(this.status === 'success') {
-            return new MaybeError('success', f(this.value));
-        }
-        return this;
-    };
-    
     MaybeError.pure = function(x) {
         return new MaybeError('success', x);
     };
-    
-    MaybeError.prototype.ap = function(y) {
-        if(this.status === 'success') {
-            return y.fmap(this.value);
-        }
-        return this;
-    }
-    
-    MaybeError.prototype.bind = function(f) {
-        if(this.status === 'success') {
-            return f(this.value);
-        }
-        return this;
-    }
     
     MaybeError.error = function(e) {
         return new MaybeError('error', e);
     };
     
+    MaybeError.prototype.fmap = function(f) {
+        if ( this.status === 'success' ) {
+            return new MaybeError('success', f(this.value));
+        }
+        return this;
+    };
+    
+    MaybeError.app = function(f) {
+        var vals = Array.prototype.slice.call(arguments, 1),
+            args = [];
+        for(var i = 0; i < vals.length; i++) {
+            if ( vals[i].status === 'success' ) {
+                args.push(vals[i].value);
+            } else {
+                return vals[i];
+            }
+        }
+        return MaybeError.pure(f.apply(undefined, args));
+    };   
+            
+    MaybeError.prototype.bind = function(f) {
+        if ( this.status === 'success' ) {
+            return f(this.value);
+        }
+        return this;
+    }
+    
     MaybeError.prototype.mapError = function(f) {
-        if(this.status === 'error') {
+        if ( this.status === 'error' ) {
             return MaybeError.error(f(this.value));
         }
         return this;
     };
     
     MaybeError.prototype.plus = function(that) {
-        if(this.status === 'failure') {
+        if ( this.status === 'failure' ) {
             return that;
         }
         return this;

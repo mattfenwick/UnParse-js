@@ -1,7 +1,7 @@
 
 var NEW_TESTS = [
     "test/maybeerror", 
-    "test/parsercombinators"
+    "test/combinators"
 ];
 
 require(NEW_TESTS, function() {
