@@ -74,7 +74,6 @@ define(["app/combinators"], function(C) {
             throw new Error('forbidden key: "_state"');
         }
         function action(state, results) {
-            console.log("here's my results: " + JSON.stringify(results));
             var out = _dict(results);
             out._state = state;
             out._name = name;
@@ -114,19 +113,20 @@ define(["app/combinators"], function(C) {
     }
 
     function sepBy1(parser, separator) {
-        return app(_sep_action,
+        return C.app(_sep_action,
                    parser,
-                   many0(app(_pair, separator, parser)));
+                   C.many0(C.app(_pair, separator, parser)));
     }
     
-    function sepBy1(parser, separator) {
+    function sepBy0(parser, separator) {
         return C.optional(sepBy1(parser, separator), {'values': [], 'separators': []});
     }
     
     return {
         'node'    :  node,
         'addError':  addError,
-        'cut'     :  cut
+        'cut'     :  cut,
+        'sepBy0'  :  sepBy0
     };
     
 });

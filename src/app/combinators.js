@@ -254,6 +254,11 @@ define(["app/maybeerror"], function(M) {
         /*
         Parser e s (m t) a -> a -> Parser e s (m t) a
         */
+        // `default_v` is optional
+        //   change undefineds to nulls to help distinguish accidents
+        if ( typeof default_v === 'undefined' ) {
+            default_v = null;
+        }
         checkParser('optional', parser);
         return alt(parser, pure(default_v));
     }
@@ -346,51 +351,6 @@ define(["app/maybeerror"], function(M) {
     // Parser e s (m t) s
     var getState = new Parser(function(xs, s) {return good(s, xs, s);});
 
-    /*
-    item :: Parser e s (m t) t
-    `item` is the most basic parser and should:
-     - succeed, consuming one single token if there are any tokens left
-     - fail if there are no tokens left
-    */
-    function Itemizer(item) {
-        checkParser('Itemizer', item);
-        this.item = item;
-    }
-    
-    Itemizer.prototype.literal = function(x) {
-        /*
-        Eq t => t -> Parser e s (m t) t
-        */
-        return check(function(y) {return x === y;}, this.item); // what about other notions of equality ??
-    };
-    
-    Itemizer.prototype.satisfy = function(pred) {
-        /*
-        (t -> Bool) -> Parser e s (m t) t
-        */
-        checkFunction('satisfy', pred);
-        return check(pred, this.item);
-    };
-    
-    Itemizer.prototype.not1 = function(parser) {
-        /*
-        Parser e s (m t) a -> Parser e s (m t) t
-        */
-        checkParser('not1', parser);
-        return seq2R(not0(parser), this.item);
-    };
-
-    Itemizer.prototype.string = function(elems) {
-        /*
-        Eq t => [t] -> Parser e s (m t) [t] 
-        */
-        var ps = [];
-        for(var i = 0; i < elems.length; i++) { // have to do this b/c strings don't have a `map` method
-            ps.push(this.literal(elems[i]));
-        }
-        var matcher = seq.apply(undefined, ps);
-        return seq2R(matcher, pure(elems));
-    }
     
     function _build_set(elems) {
         var obj = {};
@@ -400,11 +360,66 @@ define(["app/maybeerror"], function(M) {
         return obj;
     }
     
-    Itemizer.prototype.oneOf = function(elems) {
-        var c_set = _build_set(elems);
-        return this.satisfy(function(x) {return x in c_set;}); // does this hit prototype properties ... ???
-    };
+    /*
+    item :: Parser e s (m t) t
+    `item` is the most basic parser and should:
+     - succeed, consuming one single token if there are any tokens left
+     - fail if there are no tokens left
+    */    
+    function Itemizer(item) {
+        checkParser('Itemizer', item);
+        
+        function literal(x) {
+            /*
+            Eq t => t -> Parser e s (m t) t
+            */
+            return check(function(y) {return x === y;}, item); // what about other notions of equality ??
+        };
+        
+        function satisfy(pred) {
+            /*
+            (t -> Bool) -> Parser e s (m t) t
+            */
+            checkFunction('satisfy', pred);
+            return check(pred, item);
+        };
+        
+        function not1(parser) {
+            /*
+            Parser e s (m t) a -> Parser e s (m t) t
+            */
+            checkParser('not1', parser);
+            return seq2R(not0(parser), item);
+        };
     
+        function string(elems) {
+            /*
+            Eq t => [t] -> Parser e s (m t) [t] 
+            */
+            var ps = [];
+            for(var i = 0; i < elems.length; i++) { // have to do this b/c strings don't have a `map` method
+                ps.push(literal(elems[i]));
+            }
+            var matcher = seq.apply(undefined, ps);
+            return seq2R(matcher, pure(elems));
+        }
+        
+        function oneOf(elems) {
+            var c_set = _build_set(elems);
+            return satisfy(function(x) {return x in c_set;}); // does this hit prototype properties ... ???
+        };
+        
+        return {
+            'item'   :  item,
+            'literal':  literal,
+            'satisfy':  satisfy,
+            'string' :  string,
+            'not1'   :  not1,
+            'oneOf'  :  oneOf
+        };
+    }
+
+
     function _f_item_basic(xs, s) {
         /*
         Simply consumes a single token if one is available, presenting that token

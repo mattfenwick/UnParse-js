@@ -287,6 +287,14 @@ define(["app/combinators", "app/maybeerror"], function (C, MaybeError) {
             deepEqual(good([2,1], 'bye', 3), v2);
         });
         
+        test("optional -- no value", function() {
+            var p = C.optional(iz1.literal(3));
+            var v1 = p.parse([3,2,1], null);
+            deepEqual(good([2,1], null, 3), v1);
+            var v2 = p.parse([1,2,3], null);
+            deepEqual(good([1,2,3], null, null), v2);
+        });    
+        
         test("Seq2R", function() {
             var val = C.seq2R(iz1.literal(2), iz1.literal(3));
             deepEqual(val.parse([4,5], {}), M.zero);
