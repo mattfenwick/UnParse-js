@@ -2,7 +2,8 @@
 var NEW_TESTS = [
     "test/maybeerror", 
     "test/combinators",
-    "test/cst"
+    "test/cst",
+    "test/examples/json"
 ];
 
 require(NEW_TESTS, function() {
