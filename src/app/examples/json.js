@@ -144,7 +144,13 @@ define(["app/combinators", "app/cst"], function(C, Cst) {
         'number' : number,
         'keyword': keyword,
         'value'  : value,
-        'jsonstring': jsonstring
+        'jsonstring': jsonstring,
+        'oc'     : oc,
+        'cc'     : cc,
+        'os'     : os,
+        'cs'     : cs,
+        'comma'  : comma,
+        'colon'  : colon
     };
     
 });
