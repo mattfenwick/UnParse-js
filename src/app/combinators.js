@@ -250,19 +250,6 @@ define(["app/maybeerror"], function(M) {
         return fmap(g, seq.apply(undefined, parsers));
     }
     
-    function optional(parser, default_v) {
-        /*
-        Parser e s (m t) a -> a -> Parser e s (m t) a
-        */
-        // `default_v` is optional
-        //   change undefineds to nulls to help distinguish accidents
-        if ( typeof default_v === 'undefined' ) {
-            default_v = null;
-        }
-        checkParser('optional', parser);
-        return alt(parser, pure(default_v));
-    }
-    
     function _first(x, _) {
         return x;
     }
@@ -315,14 +302,6 @@ define(["app/maybeerror"], function(M) {
         return new Parser(f);
     }
 
-    function commit(e, parser) {
-        /*
-        Parser e s (m t) a -> e -> Parser e s (m t) a
-        */
-        checkParser('commit', parser);
-        return alt(parser, error(e));
-    }
-    
     function alt() {
         /*
         [Parser e s (m t) a] -> Parser e s (m t) a
@@ -342,6 +321,27 @@ define(["app/maybeerror"], function(M) {
         return new Parser(f);
     }
 
+    function optional(parser, default_v) {
+        /*
+        Parser e s (m t) a -> a -> Parser e s (m t) a
+        */
+        // `default_v` is optional
+        //   change undefineds to nulls to help distinguish accidents
+        if ( typeof default_v === 'undefined' ) {
+            default_v = null;
+        }
+        checkParser('optional', parser);
+        return alt(parser, pure(default_v));
+    }
+    
+    function commit(e, parser) {
+        /*
+        Parser e s (m t) a -> e -> Parser e s (m t) a
+        */
+        checkParser('commit', parser);
+        return alt(parser, error(e));
+    }
+    
     // Parser e s (m t) a
     var zero = new Parser(function(xs, s) {return M.zero;});
     
