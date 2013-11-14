@@ -420,7 +420,7 @@ define(["app/maybeerror"], function(M) {
     }
 
 
-    function _f_item_basic(xs, s) {
+    function _item_basic(xs, s) {
         /*
         Simply consumes a single token if one is available, presenting that token
         as the value.  Fails if token stream is empty.
@@ -433,9 +433,10 @@ define(["app/maybeerror"], function(M) {
         return good(first, rest, s);
     }
     
-    var basic = new Itemizer(new Parser(_f_item_basic));
-
     function _bump(char, position) {
+        /*
+        only treats `\n` as newline
+        */
         var line = position[0],
             col = position[1];
         if ( char === '\n' ) {
@@ -444,15 +445,39 @@ define(["app/maybeerror"], function(M) {
         return [line, col + 1];
     }
     
-    function _f_position(c) {
-        return seq2R(updateState(function(s) {return _bump(c, s);}), pure(c));
+    function _item_position(xs, position) {
+        /*
+        Assumes that the state is a 2-tuple of integers, (line, column).
+        Does two things:
+          1. see `_item_basic`
+          2. updates the line/col position in the parsing state
+        */
+        if ( xs.length === 0 ) {
+            return M.zero;
+        }
+        var first = xs[0],
+            rest = xs.slice(1);
+        return good(first, rest, _bump(first, position));
     }
     
-    var _item_position = bind(basic.item, _f_position),
-        position = new Itemizer(_item_position);
+    function _item_count(xs, ct) {
+        /*
+        Does two things:
+          1. see `_item_basic`
+          2. increments a counter -- which tells how many tokens have been consumed
+        */
+        if ( xs.length === 0 ) {
+            return M.zero;
+        }
+        var first = xs[0],
+            rest = xs.slice(1);
+        return good(first, rest, ct + 1);
+    }
         
-    var _item_count = seq2L(basic.item, updateState(function(x) {return x + 1;})),
-        count = new Itemizer(_item_count);
+    var basic    = Itemizer(new Parser(_item_basic)),
+        position = Itemizer(new Parser(_item_position)),
+        count    = Itemizer(new Parser(_item_count));
+
 
     function run(parser, input_string, state) {
         /*
