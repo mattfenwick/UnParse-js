@@ -1,4 +1,5 @@
 define(["app/combinators", "app/maybeerror"], function (C, MaybeError) {
+    "use strict";
 
     return function() {
     
@@ -35,7 +36,7 @@ define(["app/combinators", "app/maybeerror"], function (C, MaybeError) {
         });
         
         test("string", function() {
-            var parser = iz1.string('abc');
+            var parser = iz1.string('abc'),
                 v1 = parser.parse('abcdef', null),
                 v2 = parser.parse('abdef', null);
             deepEqual(v1, good('def', null, 'abc'));
