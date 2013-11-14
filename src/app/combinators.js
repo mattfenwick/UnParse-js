@@ -271,22 +271,22 @@ define(["app/maybeerror"], function(M) {
         return y;
     }
     
-    function seq2L(self, other) {
+    function seq2L(p1, p2) {
         /*
         Parser e s (m t) a -> Parser e s (m t) b -> Parser e s (m t) a
         */
-        checkParser('seq2L', self);
-        checkParser('seq2L', other);
-        return app(_first, self, other);
+        checkParser('seq2L', p1);
+        checkParser('seq2L', p2);
+        return app(_first, p1, p2);
     }
     
-    function seq2R(self, other) {
+    function seq2R(p1, p2) {
         /*
         Parser e s (m t) a -> Parser e s (m t) b -> Parser e s (m t) b
         */
-        checkParser('seq2R', self);
-        checkParser('seq2R', other);
-        return app(_second, self, other);
+        checkParser('seq2R', p1);
+        checkParser('seq2R', p2);
+        return app(_second, p1, p2);
     }
 
     function lookahead(parser) {
