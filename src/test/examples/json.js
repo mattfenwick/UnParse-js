@@ -268,6 +268,11 @@ define(["app/examples/json", "app/maybeerror", "app/combinators"], function(J, M
                            cstnode('json', [1,1], ['value', my_object([1,1], [], [])])));
         });
         
+        test("NoJson", function() {
+            deepEqual(J.json.parse('a', [1,1]),
+                      error([['json value', [1,1]]]));
+        });
+    
         test("UnclosedString", function() {
             deepEqual(J.jsonstring.parse('"abc', [1,1]),
                       error([['string', [1,1]], ['double-quote', [1,5]]]));
