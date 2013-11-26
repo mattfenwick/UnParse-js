@@ -1,0 +1,23 @@
+{
+  "name": "UnParse-js",
+  "version": "0.1.0",
+  "homepage": "https://github.com/mattfenwick/UnParse-js",
+  "authors": [
+    "Matt Fenwick <mfenwick100@gmail.com>"
+  ],
+  "description": "expressive, composable parser combinators",
+  "main": "src/app/combinators.js",
+  "keywords": [
+    "parser",
+    "combinator",
+    "parsing"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
