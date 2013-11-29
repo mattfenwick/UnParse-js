@@ -1,4 +1,6 @@
-define(["app/maybeerror"], function(M) {
+define([
+    "unparse-js/maybeerror"
+], function(M) {
     "use strict";
 
     function Parser(f) {

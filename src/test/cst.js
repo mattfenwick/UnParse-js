@@ -1,4 +1,8 @@
-define(["app/cst", "app/combinators", "app/maybeerror"], function(Cst, C, M) {
+define([
+    "unparse-js/cst", 
+    "unparse-js/combinators", 
+    "unparse-js/maybeerror"
+], function(Cst, C, M) {
     "use strict";
 
     return function() {

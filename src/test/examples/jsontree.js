@@ -1,5 +1,5 @@
 define([
-    "app/examples/jsontree"
+    "unparse-js/examples/jsontree"
 ], function(JT) {
     "use strict";
     

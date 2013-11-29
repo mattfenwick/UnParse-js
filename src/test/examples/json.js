@@ -1,4 +1,8 @@
-define(["app/examples/json", "app/maybeerror", "app/combinators"], function(J, M, C) {
+define([
+    "unparse-js/examples/json", 
+    "unparse-js/maybeerror", 
+    "unparse-js/combinators"
+], function(J, M, C) {
     "use strict";
     
     return function() {

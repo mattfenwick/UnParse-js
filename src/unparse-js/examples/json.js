@@ -16,7 +16,10 @@
 //   where char    :=  not1( '\\'  |  '"'  |  \u0000-\u001F )
 //         escape  :=  '\\'  ["\/bfnrt]                            <-- that's 8 characters
 //         unicode :=  '\\u'  [0-9a-eA-E](4)
-define(["app/combinators", "app/cst"], function(C, Cst) {
+define([
+    "unparse-js/combinators", 
+    "unparse-js/cst"
+], function(C, Cst) {
 
     var pos     = C.position,
         item    = pos.item,

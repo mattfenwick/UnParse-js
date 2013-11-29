@@ -1,4 +1,7 @@
-define(["app/combinators", "app/maybeerror"], function (C, MaybeError) {
+define([
+    "unparse-js/combinators", 
+    "unparse-js/maybeerror"
+], function (C, MaybeError) {
     "use strict";
 
     return function() {

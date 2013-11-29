@@ -1,4 +1,6 @@
-define(["app/combinators"], function(C) {
+define([
+    "unparse-js/combinators"
+], function(C) {
     "use strict";
     
     function cut(message, parser) {

@@ -1,4 +1,6 @@
-define(["app/maybeerror"], function(ME) {
+define([
+    "unparse-js/maybeerror"
+], function(ME) {
     
     return function() {
     
