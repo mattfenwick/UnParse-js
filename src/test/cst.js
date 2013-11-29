@@ -55,7 +55,6 @@ define(["app/cst", "app/combinators", "app/maybeerror"], function(Cst, C, M) {
         test("NodeSuccess", function() {
             deepEqual(node('blar').parse('abc', 17), 
                              good('abc', 17, cstnode('blar', 17)));
-            console.log('count . item? ' + count.item);
             deepEqual(node('blar', ['a', count.item]).parse('def', 17), 
                              good('ef', 18, cstnode('blar', 17, ['a', 'd'])));
             deepEqual(node('blar', ['a', count.item], ['b', count.item]).parse('def', 17), 

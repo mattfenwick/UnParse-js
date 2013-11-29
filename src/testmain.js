@@ -1,13 +1,12 @@
+"use strict";
 
-var NEW_TESTS = [
+require([
     "test/maybeerror", 
     "test/combinators",
     "test/cst",
     "test/examples/json",
     "test/examples/jsontree"
-];
-
-require(NEW_TESTS, function() {
+], function($, Q) {
     var mods = Array.prototype.slice.call(arguments);
     mods.map(function(mod, ix) {
         mod();
