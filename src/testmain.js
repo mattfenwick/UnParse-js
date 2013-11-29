@@ -3,7 +3,8 @@ var NEW_TESTS = [
     "test/maybeerror", 
     "test/combinators",
     "test/cst",
-    "test/examples/json"
+    "test/examples/json",
+    "test/examples/jsontree"
 ];
 
 require(NEW_TESTS, function() {
