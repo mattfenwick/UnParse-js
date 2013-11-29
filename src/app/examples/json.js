@@ -62,23 +62,24 @@ define(["app/combinators", "app/cst"], function(C, Cst) {
                          ['exponent', optional(_exponent)  ]),
 
         _number_2 = node('number', 
-                         ['sign', pure(null)             ], // this is to make the result match the schema of _number_1's result
+                         ['sign', pure(null)             ], // to match _number_1's schema
                          ['integer', _digits             ],
                          ['decimal', optional(_decimal)  ],
-                         ['exponent', optional(_exponent)]);
+                         ['exponent', optional(_exponent)]),
 
-// there are two number patterns solely to get the error reporting right
-//   if there's a `-` but a number can't be parsed, that's an error
-    var _number = alt(_number_1, _number_2),
+        // there are two number patterns solely to get the error reporting right
+        //   if there's a `-` but a number can't be parsed, that's an error
+        _number = alt(_number_1, _number_2);
 
-        _char = node('character',
-                     ['value', not1(oneOf('\\"'))]);
 
-// yes, this allows *any* character to be escaped
-//   invalid characters are handled by a later pass
-//   this assumes that doing so will not change the
-//   overall structure of the parse result
-    var _escape = node('escape', 
+    var _char = node('character',
+                     ['value', not1(oneOf('\\"'))]),
+
+        // yes, this allows *any* character to be escaped
+        //   invalid characters are handled by a later pass
+        // this assumes that doing so will not change the
+        //   overall structure of the parse result
+        _escape = node('escape', 
                        ['open', literal('\\')],
                        ['value', item        ]),
 
@@ -95,6 +96,7 @@ define(["app/combinators", "app/cst"], function(C, Cst) {
 
         _keyword = node('keyword', 
                         ['value', alt(string('true'), string('false'), string('null'))]);
+
 
     function tok(parser) {
         return seq2L(parser, whitespace);
