@@ -1,12 +1,12 @@
 {
   "name": "UnParse-js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/mattfenwick/UnParse-js",
   "authors": [
     "Matt Fenwick <mfenwick100@gmail.com>"
   ],
   "description": "expressive, composable parser combinators",
-  "main": "src/app/combinators.js",
+  "main": ["src/unparse-js/maybeerror", "src/unparse-js/combinators.js", "src/unparse-js/cst.js"],
   "keywords": [
     "parser",
     "combinator",
