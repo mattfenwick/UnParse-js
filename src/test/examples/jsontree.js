@@ -41,6 +41,8 @@ define([
         var in1 = number(null, ['3', '1'], null, null),
             in2 = number(null, ['0', '1'], null, null),
             in3 = number(null, ['0'], null, null),
+            in4 = number(null, ['8'], null, {'_name': 'exponent', 'letter': 'e', 'sign': '+', 'power': ['8', '7', '2']}),
+            in5 = number('-', ['2'], null, {'_name': 'exponent', 'letter': 'e', 'sign': '-', 'power': ['5', '6', '4']}),
             ik1 = keyword('true'),
             ik2 = keyword('false'),
             ik3 = keyword('null'),
@@ -68,6 +70,12 @@ define([
                       JT.ret_err([e('error', 'number', 'invalid leading 0', '01')], 1));
             deepEqual(JT.t_value(in3),
                       JT.ret_err([], 0));
+            deepEqual(JT.t_value(in4),
+                      JT.ret_err([e('warning', 'number', 'overflow', '8e+872')],
+                                 Infinity));
+            deepEqual(JT.t_value(in5),
+                      JT.ret_err([e('warning', 'number', 'possible underflow', '-2e-564')],
+                                 0));
         });
         
         test("keyword", function() {
