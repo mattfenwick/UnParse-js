@@ -80,6 +80,10 @@ define(function() {
         }
     }
     
+    function format_number(sign, i, d, exp) {
+        return [sign, i, d ? ( '.' + d ) : '', exp].join(''); 
+    }
+    
     function t_number(node) {
         // check that node _name is number (optional)
         var errors = [],
@@ -104,14 +108,23 @@ define(function() {
             num = parseFloat(val);
         // check for overflow
         if ( num === Infinity || num === -Infinity ) {
-            errors.push(make_error('warning', 'number', 'overflow', val, pos));
+            errors.push(make_error('warning', 
+                                   'number', 
+                                   'overflow', 
+                                   format_number(sign, i, d, exp), 
+                                   pos));
         }
         // obviously this underflow check is not correct:
         // 1. false positives like '0'
         // 2. ??? false negatives ??? other IEEE 0's or NaN's or something ???
         if ( num === 0 && node.exponent ) {
-            errors.push(make_error('warning', 'number', 'possible underflow', val, pos));
+            errors.push(make_error('warning', 
+                                   'number', 
+                                   'possible underflow', 
+                                   format_number(sign, i, d, exp), 
+                                   pos));
         }
+        console.log('val: ' + val);
         return ret_err(errors, num);
     }
     
