@@ -279,6 +279,11 @@ define([
                       error([['json value', [1,1]]]));
         });
     
+        test("string control character", function() {
+            deepEqual(J.jsonstring.parse('"ab\x03cd"', [1,1]),
+                      error([['string', [1,1]], ['character', [1,4]], ['invalid control character', [1,4]]]));
+        });
+        
         test("UnclosedString", function() {
             deepEqual(J.jsonstring.parse('"abc', [1,1]),
                       error([['string', [1,1]], ['double-quote', [1,5]]]));

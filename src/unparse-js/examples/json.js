@@ -30,12 +30,14 @@ define([
         string  = pos.string,
         node    = Cst.node,
         cut     = Cst.cut,
-        sepBy0  = Cst.sepBy0;
+        sepBy0  = Cst.sepBy0,
+        addError = Cst.addError;
         
     var many0 = C.many0, optional = C.optional,  
         app   = C.app,   pure = C.pure, seq2R = C.seq2R,
         many1 = C.many1, seq  = C.seq,  alt   = C.alt,
-        seq2L = C.seq2L, not0 = C.not0, error = C.error;
+        seq2L = C.seq2L, not0 = C.not0, error = C.error,
+        zero  = C.zero;
 
     function quantity(p, num) {
         var parsers = [];
@@ -75,8 +77,10 @@ define([
         _number = alt(_number_1, _number_2);
 
 
-    var _char = node('character',
-                     ['value', not1(oneOf('\\"'))]),
+    var _control = addError('invalid control character', 
+                       seq(satisfy(function(c) {return c.charCodeAt() < 32;}), error([])))
+        _char = node('character',
+                     ['value', not1(alt(oneOf('\\"'), _control))]),
 
         // yes, this allows *any* character to be escaped
         //   invalid characters are handled by a later pass
