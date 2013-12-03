@@ -54,12 +54,7 @@ define(function() {
             }
             return ret_err([], _escapes[val]); // else -- no problem
         } else if ( node._name === 'character' ) {
-            var code = val.charCodeAt();
-            if ( code < 32 ) {
-                return ret_err([make_error('error', 'string', 'invalid control character', 'code: ' + code, pos)],
-                               undefined);
-            }
-            return ret_err([], val);  // else -- we're good
+            return ret_err([], val);
         }
         throw new Error('invalid character node type -- ' + str(node._name));
     }

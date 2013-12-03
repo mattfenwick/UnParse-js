@@ -48,12 +48,11 @@ define([
             ik3 = keyword('null'),
             ik4 = keyword('none'),
             ic1 = {'_name': 'character', '_state': null, 'value': 'c'},
-            ic2 = {'_name': 'character', '_state': null, 'value': '\v'},
             ic3 = {'_name': 'escape', '_state': null, 'open': '\\', 'value': 'n'},
             ic4 = {'_name': 'escape', '_state': null, 'open': '\\', 'value': 'q'},
             ic5 = {'_name': 'unicode escape', '_state': null, 'open': '\\u', 'value': ['0', '0', '6', '4']},
             is1 = {'_name': 'string', '_state': null, 'open': '"', 'close': '"', 'value': [ic1, ic3, ic5]},
-            is2 = {'_name': 'string', '_state': null, 'open': '"', 'close': '"', 'value': [ic2, ic4, ic3, ic2]},
+            is2 = {'_name': 'string', '_state': null, 'open': '"', 'close': '"', 'value': [ic4, ic3]},
             ia1 = {'_name': 'array', '_state': null, 'body': {'values': []}},
             ia2 = {'_name': 'array', '_state': null, 'body': {'values': [in1, ik2]}},
             ia3 = {'_name': 'array', '_state': null, 'body': {'values': [ia1]}},
@@ -94,8 +93,6 @@ define([
         test("character", function() {
             deepEqual(JT.t_char(ic1),
                       JT.ret_err([], 'c'));
-            deepEqual(JT.t_char(ic2),
-                      JT.ret_err([e('error', 'string', 'invalid control character', 'code: 11', null)], undefined));
             deepEqual(JT.t_char(ic3),
                       JT.ret_err([], '\n'));
             deepEqual(JT.t_char(ic4),
@@ -108,9 +105,7 @@ define([
             deepEqual(JT.t_value(is1),
                       JT.ret_err([], 'c\nd'));
             deepEqual(JT.t_value(is2),
-                      JT.ret_err([e('error', 'string', 'invalid control character', 'code: 11', null),
-                                  e('error', 'string', 'invalid escape sequence', 'q', null),
-                                  e('error', 'string', 'invalid control character', 'code: 11', null)],
+                      JT.ret_err([e('error', 'string', 'invalid escape sequence', 'q', null)],
                                  undefined));
         });
         
@@ -123,9 +118,7 @@ define([
                       JT.ret_err([], [[]]));
             deepEqual(JT.t_value(ia4),
                       JT.ret_err([e('error', 'number', 'invalid leading 0', '01'),
-                                  e('error', 'string', 'invalid control character', 'code: 11', null),
-                                  e('error', 'string', 'invalid escape sequence', 'q', null),
-                                  e('error', 'string', 'invalid control character', 'code: 11', null)], 
+                                  e('error', 'string', 'invalid escape sequence', 'q', null)], 
                                   [1, undefined]));
         });
         
@@ -135,9 +128,7 @@ define([
             deepEqual(JT.t_value(io2),
                       JT.ret_err([], {'c\nd': {}}));
             deepEqual(JT.t_value(io3),
-                      JT.ret_err([e('error', 'string', 'invalid control character', 'code: 11', null),
-                                  e('error', 'string', 'invalid escape sequence', 'q', null),
-                                  e('error', 'string', 'invalid control character', 'code: 11', null)], 
+                      JT.ret_err([e('error', 'string', 'invalid escape sequence', 'q', null)],
                                  {}));
             deepEqual(JT.t_value(io4),
                       JT.ret_err([e('warning', 'object', 'duplicate key', 'c\nd', [null, null])], 
