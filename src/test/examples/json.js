@@ -28,6 +28,8 @@ define([
                            ['body', {'separators': seps, 'values': vals}]);
         }
         
+        module("json");
+        
         test("Integer", function() {
             var inp = '83 abc';
             deepEqual(J.number.parse(inp, [1,1]),

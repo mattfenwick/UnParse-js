@@ -63,6 +63,8 @@ define([
             io3 = {'_name': 'object', '_state': null, 'body': {'values': [keyval(is2, in1)]}},
             io4 = {'_name': 'object', '_state': null, 'body': {'values': [keyval(is1, in1), keyval(is1, io1)]}};
         
+        module("jsontree");
+    
         test("simple number", function() {
             deepEqual(JT.t_value(in1),
                       JT.ret_err([], 31));
