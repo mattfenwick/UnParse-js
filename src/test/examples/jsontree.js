@@ -45,7 +45,6 @@ define([
             ik1 = keyword('true'),
             ik2 = keyword('false'),
             ik3 = keyword('null'),
-            ik4 = keyword('none'),
             ic1 = {'_name': 'character', '_state': null, 'value': 'c'},
             ic3 = {'_name': 'escape', '_state': null, 'open': '\\', 'value': 'n'},
             ic5 = {'_name': 'unicode escape', '_state': null, 'open': '\\u', 'value': ['0', '0', '6', '4']},
@@ -81,17 +80,12 @@ define([
                       JT.ret_err([], false));
             deepEqual(JT.t_value(ik3),
                       JT.ret_err([], null));
-            deepEqual(JT.t_value(ik4),
-                      JT.ret_err([e('keyword', 'invalid keyword', 'none')], undefined));
         });
         
         test("character", function() {
-            deepEqual(JT.t_char(ic1),
-                      JT.ret_err([], 'c'));
-            deepEqual(JT.t_char(ic3),
-                      JT.ret_err([], '\n'));
-            deepEqual(JT.t_char(ic5),
-                      JT.ret_err([], 'd'));
+            deepEqual(JT.t_char(ic1), 'c');
+            deepEqual(JT.t_char(ic3), '\n');
+            deepEqual(JT.t_char(ic5), 'd');
         });
         
         test("string", function() {

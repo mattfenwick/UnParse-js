@@ -1,10 +1,7 @@
 // tasks:
-//    integer portion of number: no leading 0's (except for the number 0)
 //    no number overflow/underflow
 //    no duplicate keys in maps
 //    number literals to numbers
-//    no illegal control characters in strings
-//    escape sequences from strings are valid
 //    unicode escape sequences to chars
 //    characters to chars
 //    escapes to chars
@@ -40,36 +37,29 @@ define(function() {
         };
     }
     
-    function t_char(node) {
-        var val = node.value;
-        if ( node._name === 'unicode escape' ) {
-            var char = String.fromCharCode(parseInt(val.join(''), 16));
-            return ret_err([], char);
-        } else if ( node._name === 'escape' ) {
-            if ( !(val in _escapes) ) {
-                throw new Error('invalid character escape -- ' + val);
-            }
-            return ret_err([], _escapes[val]);
-        } else if ( node._name === 'character' ) {
-            return ret_err([], val);
+    function unicode(val) {
+        return String.fromCharCode(parseInt(val.join(''), 16));
+    }
+    
+    function escape(val) {
+        if ( !(val in _escapes) ) {
+            throw new Error('invalid character escape -- ' + val);
         }
-        throw new Error('invalid character node type -- ' + node._name);
+        return _escapes[val];
+    }
+    
+    var _chars = {
+        'escape': escape,
+        'unicode escape': unicode,
+        'character': function(c) {return c;}
+    };
+    
+    function t_char(node) {
+        return _chars[node._name](node.value);
     }
     
     function t_string(node) {
-        var errors = [],
-            chars = [];
-        node.value.map(function(t) {
-            var c = t_char(t);
-            concat(errors, c.errors);
-            chars.push(c.value);
-        });
-        // a little hack -- if there's any errors, don't report a real value
-        if ( errors.length > 0 ) {
-            return ret_err(errors, undefined);
-        } else {
-            return ret_err(errors, chars.join(''));
-        }
+        return ret_err([], node.value.map(t_char).join(''));
     }
     
     function format_number(sign, i, d, exp) {
@@ -119,14 +109,11 @@ define(function() {
             'null' : null
         };
     
-    // invalid keywords aren't parsed, so this is really kind of a 
-    //   sanity check more than something that's expected to happen
     function t_keyword(node) {
         if ( node.value in _keywords ) {
             return ret_err([], _keywords[node.value]);
         }
-        return ret_err([make_error('keyword', 'invalid keyword', node.value, node._state)],
-                       undefined);
+        throw new Error('invalid keyword -- ' + node.value);
     }
     
     function t_array(node) {
@@ -142,7 +129,7 @@ define(function() {
     
     function t_pair(node) {
         var errors = [],
-            s = t_string(node.key),
+            s = t_string(node.key), // what if ... node.key is not a string CST?
             v = t_value(node.value);
         concat(errors, s.errors);
         concat(errors, v.errors);
