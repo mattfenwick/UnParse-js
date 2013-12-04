@@ -24,9 +24,8 @@ define(function() {
         });
     }
     
-    function make_error(type, element, message, text, position) {
+    function make_error(element, message, text, position) {
         return {
-            'type'    : type    ,
             'element' : element ,
             'message' : message ,
             'text'    : text    ,
@@ -42,21 +41,19 @@ define(function() {
     }
     
     function t_char(node) {
-        var val = node.value,
-            pos = node._state;
+        var val = node.value;
         if ( node._name === 'unicode escape' ) {
             var char = String.fromCharCode(parseInt(val.join(''), 16));
             return ret_err([], char);
         } else if ( node._name === 'escape' ) {
             if ( !(val in _escapes) ) {
-                return ret_err([make_error('error', 'string', 'invalid escape sequence', val, pos)], 
-                               undefined);
+                throw new Error('invalid character escape -- ' + val);
             }
-            return ret_err([], _escapes[val]); // else -- no problem
+            return ret_err([], _escapes[val]);
         } else if ( node._name === 'character' ) {
             return ret_err([], val);
         }
-        throw new Error('invalid character node type -- ' + str(node._name));
+        throw new Error('invalid character node type -- ' + node._name);
     }
     
     function t_string(node) {
@@ -83,12 +80,8 @@ define(function() {
         // check that node _name is number (optional)
         var errors = [],
             sign = node.sign ? node.sign : '',
-            i = node.integer.join(''),
+            i = [node.integer.first].concat(node.integer.rest).join(''),
             pos = node._state;
-        // check that there's no leading 0's
-        if ( (i[0] === '0') && (i.length > 1) ) {
-            errors.push(make_error('error', 'number', 'invalid leading 0', i, pos));
-        }
         var d = node.decimal ? node.decimal.digits.join('') : '', 
             exp = '';
         if ( node.exponent ) {
@@ -103,18 +96,15 @@ define(function() {
             num = parseFloat(val);
         // check for overflow
         if ( num === Infinity || num === -Infinity ) {
-            errors.push(make_error('warning', 
-                                   'number', 
+            errors.push(make_error('number', 
                                    'overflow', 
                                    format_number(sign, i, d, exp), 
                                    pos));
         }
-        // obviously this underflow check is not correct:
-        // 1. false positives like '0'
-        // 2. ??? false negatives ??? other IEEE 0's or NaN's or something ???
+        // underflow check may be incorrect:
+        // ??? false negatives ??? other IEEE 0's or NaN's or something ???
         if ( num === 0 && node.exponent ) {
-            errors.push(make_error('warning', 
-                                   'number', 
+            errors.push(make_error('number', 
                                    'possible underflow', 
                                    format_number(sign, i, d, exp), 
                                    pos));
@@ -135,7 +125,7 @@ define(function() {
         if ( node.value in _keywords ) {
             return ret_err([], _keywords[node.value]);
         }
-        return ret_err([make_error('error', 'keyword', 'invalid keyword', node.value, node._state)],
+        return ret_err([make_error('keyword', 'invalid keyword', node.value, node._state)],
                        undefined);
     }
     
@@ -166,22 +156,19 @@ define(function() {
             positions = {},
             seen_twice = {};
         pairs.map(function(pair) {
-            var p = t_pair(pair);
+            var p = t_pair(pair),
+                key = p.value[0];
             concat(errors, p.errors);
-            var key = p.value[0];
-            // key is undefined if there's an error in it. don't want to confuse empty string case
-            if ( typeof key === 'string' ) {
-                if ( key in positions ) {
-                    seen_twice[key] = true;
-                } else {
-                    positions[key] = [];
-                    obj[key] = p.value[1];
-                }
-                positions[key].push(pair.key._state);
+            if ( key in positions ) {
+                seen_twice[key] = true;
+            } else {
+                positions[key] = [];
+                obj[key] = p.value[1];
             }
+            positions[key].push(pair.key._state);
         });
         for (var key in seen_twice) {
-            errors.push(make_error('warning', 'object', 'duplicate key', key, positions[key]));
+            errors.push(make_error('object', 'duplicate key', key, positions[key]));
         }
         return ret_err(errors, obj);
     }

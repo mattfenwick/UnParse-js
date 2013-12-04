@@ -49,7 +49,9 @@ define([
 
     var whitespace = many0(oneOf(' \t\n\r')),
         
-        _digits = many1(oneOf('0123456789')),
+        _digit = oneOf('0123456789'),
+        
+        _digits = many1(_digit),
 
         _decimal = node('decimal',
                         ['dot', literal('.')],
@@ -59,16 +61,29 @@ define([
                          ['letter', oneOf('eE')         ], 
                          ['sign', optional(oneOf('+-')) ],
                          ['power', cut('power', _digits)]),
+        
+        _leading_0_check = addError('invalid leading 0',
+                                    not0(seq2L(_digit, error([]))))
+        
+        _integer_1 = node('integer',
+                          ['first', seq2L(literal('0'), _leading_0_check)],
+                          ['rest' , pure([])                             ]),
+        
+        _integer_2 = node('integer',
+                          ['first', oneOf('123456789')],
+                          ['rest', many0(_digit)      ]),
+        
+        _integer = alt(_integer_1, _integer_2), 
 
         _number_1 = node('number', 
-                         ['sign', literal('-')             ],
-                         ['integer', cut('digits', _digits)],
-                         ['decimal', optional(_decimal)    ],
-                         ['exponent', optional(_exponent)  ]),
+                         ['sign', literal('-')              ],
+                         ['integer', cut('digits', _integer)],
+                         ['decimal', optional(_decimal)     ],
+                         ['exponent', optional(_exponent)   ]),
 
         _number_2 = node('number', 
                          ['sign', pure(null)             ], // to match _number_1's schema
-                         ['integer', _digits             ],
+                         ['integer', _integer            ],
                          ['decimal', optional(_decimal)  ],
                          ['exponent', optional(_exponent)]),
 
@@ -82,13 +97,9 @@ define([
         _char = node('character',
                      ['value', not1(alt(oneOf('\\"'), _control))]),
 
-        // yes, this allows *any* character to be escaped
-        //   invalid characters are handled by a later pass
-        // this assumes that doing so will not change the
-        //   overall structure of the parse result
         _escape = node('escape', 
-                       ['open', literal('\\')],
-                       ['value', item        ]),
+                       ['open', literal('\\')                            ],
+                       ['value', cut('simple escape', oneOf('"\\/bfnrt'))]),
 
         _hexC = oneOf('0123456789abcdefABCDEF'),
 

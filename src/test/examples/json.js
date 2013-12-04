@@ -38,7 +38,7 @@ define([
                            cstnode('number', 
                                [1,1], 
                                ['sign', null],
-                               ['integer', ['8', '3']],
+                               ['integer', cstnode('integer', [1,1], ['first', '8'], ['rest', ['3']])],
                                ['exponent', null],
                                ['decimal', null])));
             var inp2 = '-77 abc';
@@ -48,7 +48,7 @@ define([
                            cstnode('number', 
                                [1,1], 
                                ['sign', '-'],
-                               ['integer', ['7', '7']],
+                               ['integer', cstnode('integer', [1,2], ['first', '7'], ['rest', ['7']])],
                                ['exponent', null],
                                ['decimal', null])));
         });
@@ -59,7 +59,7 @@ define([
                       good('abc', [1, 9], 
                                   cstnode('number', [1, 1],
                                       ['sign', '-'],
-                                      ['integer', ['8']],
+                                      ['integer', cstnode('integer', [1,2], ['first', '8'], ['rest', []])],
                                       ['decimal', cstnode('decimal', [1, 3],
                                                       ['dot', '.'],
                                                       ['digits', ['1']])],
@@ -72,7 +72,7 @@ define([
                       good('abc', [1,6], 
                                   cstnode('number', [1,1],
                                       ['sign', '-'], 
-                                      ['integer', ['8']], 
+                                      ['integer', cstnode('integer', [1,2], ['first', '8'], ['rest', []])], 
                                       ['decimal', cstnode('decimal', [1,3],
                                                       ['dot', '.'], 
                                                       ['digits', ['1']])],
@@ -82,7 +82,7 @@ define([
                       good('abc', [1,7], 
                                   cstnode('number', [1,1],
                                       ['sign', '-'],
-                                      ['integer', ['8']],
+                                      ['integer', cstnode('integer', [1,2], ['first', '8'], ['rest', []])],
                                       ['decimal', null],
                                       ['exponent', cstnode('exponent', [1,3],
                                                        ['letter', 'e'],
@@ -93,6 +93,11 @@ define([
         test("NumberMessedUpExponent", function() {
             deepEqual(J.number.parse('0e abc', [1,1]),
                       error([['number', [1,1]], ['exponent', [1,2]], ['power', [1,3]]]));
+        });
+        
+        test("NumberLeading0", function() {
+            deepEqual(J.number.parse('-07 abc', [1,1]),
+                      error([['number', [1,1]], ['integer', [1,2]], ['invalid leading 0', [1,3]]]));
         });
     
         test("LoneMinusSign", function() {
@@ -287,6 +292,11 @@ define([
         test("UnclosedString", function() {
             deepEqual(J.jsonstring.parse('"abc', [1,1]),
                       error([['string', [1,1]], ['double-quote', [1,5]]]));
+        });
+        
+        test("StringBadEscape", function() {
+            deepEqual(J.jsonstring.parse('"\\qr"', [1,1]),
+                      error([['string', [1,1]], ['escape', [1,2]], ['simple escape', [1,3]]]));
         });
     
         test("StringBadUnicodeEscape", function() {
