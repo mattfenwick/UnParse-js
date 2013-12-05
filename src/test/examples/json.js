@@ -1,8 +1,7 @@
 define([
     "unparse-js/examples/json", 
-    "unparse-js/maybeerror", 
-    "unparse-js/combinators"
-], function(J, M, C) {
+    "unparse-js/maybeerror"
+], function(J, M) {
     "use strict";
     
     return function() {
@@ -125,7 +124,7 @@ define([
                               ['open', '"'],
                               ['close', '"'],
                               ['value', chars]);
-            deepEqual(J.jsonstring.parse(inp, [1,1]), good('def', [1,7], val))
+            deepEqual(J.jsonstring.parse(inp, [1,1]), good('def', [1,7], val));
         });
         
         test("StringBasicEscape", function() {
@@ -137,7 +136,7 @@ define([
                     cstnode('character', [1,7], ['value', 'c'])
                 ],
                 val = cstnode('string', [1,1], ['open', '"'], ['close', '"'], ['value', chars]);
-            deepEqual(J.jsonstring.parse(inp, [1,1]), good('def', [1,10], val))
+            deepEqual(J.jsonstring.parse(inp, [1,1]), good('def', [1,10], val));
         });
     
         test("StringEscapeSequences", function() {
@@ -166,7 +165,7 @@ define([
                     cstnode('character', [1,16], ['value', 'c'])
                 ],
                 val = cstnode('string', [1,1], ['open', '"'], ['close', '"'], ['value', chars]);
-            deepEqual(J.jsonstring.parse(inp, [1,1]), good('def', [1,19], val))
+            deepEqual(J.jsonstring.parse(inp, [1,1]), good('def', [1,19], val));
         });
     
         test("Punctuation", function() {
