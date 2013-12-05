@@ -20,6 +20,7 @@ define([
     "unparse-js/combinators", 
     "unparse-js/cst"
 ], function(C, Cst) {
+    "use strict";
 
     var pos     = C.position,
         item    = pos.item,
@@ -93,7 +94,8 @@ define([
 
 
     var _control = addError('invalid control character', 
-                       seq(satisfy(function(c) {return c.charCodeAt() < 32;}), error([])))
+                       seq(satisfy(function(c) {return c.charCodeAt() < 32;}), error([]))),
+        
         _char = node('character',
                      ['value', not1(alt(oneOf('\\"'), _control))]),
 
