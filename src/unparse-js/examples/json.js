@@ -35,10 +35,10 @@ define([
         addError = Cst.addError;
         
     var many0 = C.many0, optional = C.optional,  
-        app   = C.app,   pure = C.pure, seq2R = C.seq2R,
-        many1 = C.many1, seq  = C.seq,  alt   = C.alt,
-        seq2L = C.seq2L, not0 = C.not0, error = C.error,
-        zero  = C.zero;
+        pure  = C.pure , seq2R = C.seq2R,
+        many1 = C.many1, seq   = C.seq,  alt   = C.alt,
+        seq2L = C.seq2L, not0  = C.not0, error = C.error,
+        bind  = C.bind;
 
     function quantity(p, num) {
         var parsers = [];
@@ -63,18 +63,14 @@ define([
                          ['sign', optional(oneOf('+-')) ],
                          ['power', cut('power', _digits)]),
         
-        _leading_0_check = addError('invalid leading 0',
-                                    not0(seq2L(_digit, error([]))))
-        
-        _integer_1 = node('integer',
-                          ['first', seq2L(literal('0'), _leading_0_check)],
-                          ['rest' , pure([])                             ]),
-        
-        _integer_2 = node('integer',
-                          ['first', oneOf('123456789')],
-                          ['rest', many0(_digit)      ]),
-        
-        _integer = alt(_integer_1, _integer_2), 
+        _integer = addError('invalid leading 0',  
+                            bind(_digits, 
+                                 function(ds) {
+                                     if ( ds[0] === '0' && ds.length > 1 ) {
+                                         return error([]);
+                                     }
+                                     return pure(ds);
+                                 })),
 
         _number_1 = node('number', 
                          ['sign', literal('-')              ],

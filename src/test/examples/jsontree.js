@@ -38,10 +38,10 @@ define([
     
         // i -> in, o -> out
         // n -> number, k -> keyword, c -> char, s -> string, a -> array, o -> object
-        var in1 = number(null, {'first': '3', 'rest': ['1']}, null, null),
-            in2 = number(null, {'first': ['0'], 'rest': []}, null, null),
-            in4 = number(null, {'first': ['8'], 'rest': []}, null, {'_name': 'exponent', 'letter': 'e', 'sign': '+', 'power': ['8', '7', '2']}),
-            in5 = number('-', {'first': ['2'], 'rest': []}, null, {'_name': 'exponent', 'letter': 'e', 'sign': '-', 'power': ['5', '6', '4']}),
+        var in1 = number(null, ['3', '1'], null, null),
+            in2 = number(null, ['0'], null, null),
+            in4 = number(null, ['8'], null, {'_name': 'exponent', 'letter': 'e', 'sign': '+', 'power': ['8', '7', '2']}),
+            in5 = number('-', ['2'], null, {'_name': 'exponent', 'letter': 'e', 'sign': '-', 'power': ['5', '6', '4']}),
             ik1 = keyword('true'),
             ik2 = keyword('false'),
             ik3 = keyword('null'),

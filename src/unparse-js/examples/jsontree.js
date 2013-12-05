@@ -70,7 +70,7 @@ define(function() {
         // check that node _name is number (optional)
         var errors = [],
             sign = node.sign ? node.sign : '',
-            i = [node.integer.first].concat(node.integer.rest).join(''),
+            i = node.integer.join(''),
             pos = node._state;
         var d = node.decimal ? node.decimal.digits.join('') : '', 
             exp = '';
