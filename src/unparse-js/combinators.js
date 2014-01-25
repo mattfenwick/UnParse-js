@@ -38,11 +38,7 @@ define([
     }
 
     function result(value, rest, state) {
-        return {
-            'state' : state, 
-            'rest'  : rest, 
-            'result': value
-        };
+        return {'result': value, 'rest': rest, 'state': state};
     }
     
     function good(value, rest, state) {
@@ -50,10 +46,9 @@ define([
     }
     
     function compose(f, g) {
-        return function(x) {
-            return f(g(x));
-        };
+        return function(x) { return f(g(x)); };
     }
+
     
     function fmap(g, parser) {
         /*
@@ -73,7 +68,10 @@ define([
         /*
         a -> Parser e s (m t) a
         */
-        return new Parser(function(xs, s) {return good(x, xs, s);});
+        function f(xs, s) {
+	    return good(x, xs, s);
+	}
+        return new Parser(f);
     }
 
     function bind(parser, g) {
@@ -121,11 +119,11 @@ define([
     }
 
     function mapError(f, parser) {
-        checkFunction('mapError', f);
-        checkParser('mapError', parser);
         /*
         Parser e s (m t) a -> (e -> e) -> Parser e s (m t) a
         */
+        checkFunction('mapError', f);
+        checkParser('mapError', parser);
         return catchError(compose(error, f), parser);
     }
     
@@ -435,6 +433,7 @@ define([
         return good(first, rest, s);
     }
     
+
     function _bump(char, position) {
         /*
         only treats `\n` as newline
@@ -461,6 +460,7 @@ define([
             rest = xs.slice(1);
         return good(first, rest, _bump(first, position));
     }
+
     
     function _item_count(xs, ct) {
         /*
@@ -475,7 +475,8 @@ define([
             rest = xs.slice(1);
         return good(first, rest, ct + 1);
     }
-        
+    
+   
     var basic    = Itemizer(new Parser(_item_basic)),
         position = Itemizer(new Parser(_item_position)),
         count    = Itemizer(new Parser(_item_count));
