@@ -2,15 +2,21 @@ define([
     "unparse-js/combinators"
 ], function(C) {
     "use strict";
+
+    var bind   = C.bind  ,  getState = C.getState,
+        commit = C.commit,  mapError = C.mapError,
+        app    = C.app   ,  many0    = C.many0   ,
+        seq2R  = C.seq2R ,  optional = C.optional,
+        seq    = C.seq   ,  fmap     = C.fmap;
     
     function cut(message, parser) {
         /*
         assumes errors are lists
         */
         function f(p) {
-            return C.commit([[message, p]], parser);
+            return commit([[message, p]], parser);
         }
-        return C.bind(C.getState, f);
+        return bind(getState, f);
     }
     
     // probably not the optimal way to do this
@@ -26,10 +32,11 @@ define([
         that the state is desired
         */
         function f(pos) {
-            return C.mapError(function(es) {return _cons([e, pos], es);}, parser);
+            return mapError(function(es) {return _cons([e, pos], es);}, parser);
         }
-        return C.bind(C.getState, f);
+        return bind(getState, f);
     }
+
     
     function _has_duplicates(arr) {
         var keys = {};
@@ -87,12 +94,12 @@ define([
         function f(pair) {
             var s = pair[0],
                 p = pair[1];
-            return C.fmap(closure_workaround(s), p);
+            return fmap(closure_workaround(s), p);
         }
         return addError(name,
-                        C.app(action,
-                              C.getState,
-                              C.seq.apply(undefined, pairs.map(f))));
+                        app(action,
+                              getState,
+                              seq.apply(undefined, pairs.map(f))));
     }
 
     function _sep_action(fst, pairs) {
@@ -115,13 +122,13 @@ define([
     }
 
     function sepBy1(parser, separator) {
-        return C.app(_sep_action,
+        return app(_sep_action,
                    parser,
-                   C.many0(C.app(_pair, separator, parser)));
+                   many0(app(_pair, separator, parser)));
     }
     
     function sepBy0(parser, separator) {
-        return C.optional(sepBy1(parser, separator), {'values': [], 'separators': []});
+        return optional(sepBy1(parser, separator), {'values': [], 'separators': []});
     }
     
     return {

@@ -25,7 +25,7 @@ define(function() {
     
     MaybeError.prototype.fmap = function(f) {
         if ( this.status === 'success' ) {
-            return new MaybeError('success', f(this.value));
+            return MaybeError.pure(f(this.value));
         }
         return this;
     };
