@@ -32,9 +32,9 @@ define([
         });
         
         test("satisfy", function() {
-            var v1 = iz1.satisfy(function(x) {return x > 3;}).parse([1,2,3], 'bye');
+            var v1 = iz1.satisfy(function(x) {return x > 3;}).parse([1,2,3], 'bye'),
+                v2 = iz1.satisfy(function(x) {return x < 3;}).parse([1,2,3], 'hi');
             deepEqual(v1, M.zero);
-            var v2 = iz1.satisfy(function(x) {return x < 3;}).parse([1,2,3], 'hi');
             deepEqual(v2, good([2,3], 'hi', 1));
         });
         
@@ -75,17 +75,17 @@ define([
         });
         
         test("Satisfy", function() {
-            var v1 = iz2.satisfy(function(x) {return x > '3';}).parse('123', [2, 2]);
+            var v1 = iz2.satisfy(function(x) {return x > '3';}).parse('123', [2, 2]),
+                v2 = iz2.satisfy(function(x) {return x < '3';}).parse('123', [2, 2]);
             deepEqual(v1, M.zero);
-            var v2 = iz2.satisfy(function(x) {return x < '3';}).parse('123', [2, 2]);
             deepEqual(v2, good('23', [2, 3], '1'));
         });
         
         test("String", function() {
-            var parser = iz2.string('abc');
-            var v1 = parser.parse('abcdef', [4, 3]);
+            var parser = iz2.string('abc'),
+                v1 = parser.parse('abcdef', [4, 3]),
+                v2 = parser.parse('abdef', [4, 3]);
             deepEqual(v1, good('def', [4, 6], 'abc'));
-            var v2 = parser.parse('abdef', [4, 3]);
             deepEqual(v2, M.zero);
         });
         
@@ -118,17 +118,17 @@ define([
         });
         
         test("Satisfy", function() {
-            var v1 = iz3.satisfy(function(x) {return x > '3';}).parse('123', 22);
+            var v1 = iz3.satisfy(function(x) {return x > '3';}).parse('123', 22),
+                v2 = iz3.satisfy(function(x) {return x < '3';}).parse('123', 22);
             deepEqual(v1, M.zero);
-            var v2 = iz3.satisfy(function(x) {return x < '3';}).parse('123', 22);
             deepEqual(v2, good('23', 23, '1'));
         });
         
         test("String", function() {
-            var parser = iz3.string('abc');
-            var v1 = parser.parse('abcdef', 43);
+            var parser = iz3.string('abc'),
+                v1 = parser.parse('abcdef', 43),
+                v2 = parser.parse('abdef', 43);
             deepEqual(v1, good('def', 46, 'abc'));
-            var v2 = parser.parse('abdef', 43);
             deepEqual(v2, M.zero);
         });
         
@@ -164,7 +164,7 @@ define([
         });
         
         test("bind", function() {
-            var two = C.bind(iz1.item, function(x) {return iz1.literal(x);});
+            var two = C.bind(iz1.item, iz1.literal);
             deepEqual(two.parse('abcde', {}), M.zero);
             deepEqual(two.parse('aabcde', {}), good('bcde', {}, 'a'));
         });
@@ -226,11 +226,11 @@ define([
             
         test("MapError", function() {
             function f(x) {return x.length;}
-            var v1 = C.mapError(f, C.error('abcdef')).parse('123abc', null);
+            var v1 = C.mapError(f, C.error('abcdef')).parse('123abc', null),
+                v2 = C.mapError(f, C.zero).parse('123abc', null),
+                v3 = C.mapError(f, C.pure(82)).parse('123abc', null);
             deepEqual(v1, M.error(6));
-            var v2 = C.mapError(f, C.zero).parse('123abc', null);
             deepEqual(v2, M.zero);
-            var v3 = C.mapError(f, C.pure(82)).parse('123abc', null);
             deepEqual(v3, good('123abc', null, 82))        
         });
     
@@ -278,27 +278,27 @@ define([
                                iz1.item, 
                                iz1.satisfy(function(x) {return x > 2;}), 
                                iz1.item);
-            var v1 = parser.parse([1,2,3,4,5], 'hi');
+            var v1 = parser.parse([1,2,3,4,5], 'hi'),
+                v2 = parser.parse([5,6,7,8,9], 'bye'),
+                v3 = parser.parse([5,6], 'goodbye');
             deepEqual(v1, M.zero);
-            var v2 = parser.parse([5,6,7,8,9], 'bye');
             deepEqual(v2, good([8,9], 'bye', 47));
-            var v3 = parser.parse([5,6], 'goodbye');
             deepEqual(v3, M.zero);
         });
         
         test("Optional", function() {
-            var parser = C.optional(iz1.literal(3), 'blargh');
-            var v1 = parser.parse([1,2,3], 'hi');
+            var parser = C.optional(iz1.literal(3), 'blargh'),
+                v1 = parser.parse([1,2,3], 'hi'),
+                v2 = parser.parse([3,2,1], 'bye');
             deepEqual(v1, good([1,2,3], 'hi', 'blargh'));
-            var v2 = parser.parse([3,2,1], 'bye');
             deepEqual(v2, good([2,1], 'bye', 3));
         });
         
         test("optional -- no value", function() {
-            var p = C.optional(iz1.literal(3));
-            var v1 = p.parse([3,2,1], null);
+            var p = C.optional(iz1.literal(3)),
+                v1 = p.parse([3,2,1], null),
+                v2 = p.parse([1,2,3], null);
             deepEqual(v1, good([2,1], null, 3));
-            var v2 = p.parse([1,2,3], null);
             deepEqual(v2, good([1,2,3], null, null));
         });
         
