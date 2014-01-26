@@ -523,6 +523,8 @@ define([
         'position'   : position,
         'count'      : count,
         
-        'run'        : run
+        'run'        : run,
+        
+        '__version__': '0.1.3'
     };
 });
