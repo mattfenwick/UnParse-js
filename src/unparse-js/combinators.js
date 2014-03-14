@@ -69,8 +69,8 @@ define([
         a -> Parser e s (m t) a
         */
         function f(xs, s) {
-	    return good(x, xs, s);
-	}
+            return good(x, xs, s);
+        }
         return new Parser(f);
     }
 
