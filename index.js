@@ -2,8 +2,8 @@
 
 
 module.exports = {
-    'maybeerror' : require('./libs/maybeerror.js') ,
-    'combinators': require('./libs/combinators.js'),
-    'cst'        : require('./libs/cst.js')
+    'maybeerror' : require('./lib/maybeerror.js') ,
+    'combinators': require('./lib/combinators.js'),
+    'cst'        : require('./lib/cst.js')
 };
 
