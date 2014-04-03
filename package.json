@@ -1,13 +1,14 @@
 {
   "name": "unparse-js",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "expressive, composable parser combinators",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "mocha --reporter spec"
+    "test": "mocha --reporter spec",
+    "lint": "grunt --force"
   },
   "repository": {
     "type": "git",
