@@ -313,10 +313,10 @@ module('combinators', function() {
     });
     
     test("Lookahead", function() {
-        var parser = C.seq2L(iz1.literal(2), C.lookahead(iz1.literal(3)));
-        deepEqual(parser.parse([2,3,4,5], null), good([3,4,5], null, 2));
-        deepEqual(parser.parse([2,4,5], null), M.zero);
-        deepEqual(parser.parse([3,4,5], null), M.zero);
+        var parser = C.lookahead(iz3.oneOf([2,3]));
+        deepEqual(parser.parse([2,3,4,5], 41), good([2,3,4,5], 41, 2));
+        deepEqual(parser.parse([3,4,5], 41), good([3,4,5], 41, 3));
+        deepEqual(parser.parse([4,5], null), M.zero);
     });
     
     test("Not0", function() {

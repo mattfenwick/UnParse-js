@@ -4,6 +4,8 @@
 module.exports = {
     'maybeerror' : require('./lib/maybeerror.js') ,
     'combinators': require('./lib/combinators.js'),
-    'cst'        : require('./lib/cst.js')
+    'cst'        : require('./lib/cst.js'),
+    
+    '__version__': '0.1.6'
 };
 
