@@ -22,9 +22,9 @@ module('cst', function() {
         });
     }
     
-    function cstnode(name, state) {
-        var pairs = Array.prototype.slice.call(arguments, 2),
-            obj = {'_name': name, '_state': state};
+    function cstnode(name, start, end) {
+        var pairs = Array.prototype.slice.call(arguments, 3),
+            obj = {'_name': name, '_start': start, '_end': end};
         pairs.map(function(p) {
             obj[p[0]] = p[1];
         });
@@ -61,11 +61,11 @@ module('cst', function() {
 
     test("NodeSuccess", function() {
         deepEqual(node('blar').parse('abc', 17), 
-                         good('abc', 17, cstnode('blar', 17)));
+                         good('abc', 17, cstnode('blar', 17, 17)));
         deepEqual(node('blar', ['a', count.item]).parse('def', 17), 
-                         good('ef', 18, cstnode('blar', 17, ['a', 'd'])));
+                         good('ef', 18, cstnode('blar', 17, 18, ['a', 'd'])));
         deepEqual(node('blar', ['a', count.item], ['b', count.item]).parse('def', 17), 
-                         good('f', 19, cstnode('blar', 17, ['a', 'd'], ['b', 'e'])));
+                         good('f', 19, cstnode('blar', 17, 19, ['a', 'd'], ['b', 'e'])));
     });
     
     test("NodeFailure", function() {
