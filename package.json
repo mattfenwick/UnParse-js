@@ -1,6 +1,6 @@
 {
   "name": "unparse-js",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "expressive, composable parser combinators",
   "main": "index.js",
   "directories": {
