@@ -6,6 +6,6 @@ module.exports = {
     'combinators': require('./lib/combinators.js'),
     'cst'        : require('./lib/cst.js'),
     
-    '__version__': '0.1.6'
+    '__version__': '0.1.8'
 };
 
