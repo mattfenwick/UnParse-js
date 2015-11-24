@@ -282,6 +282,19 @@ module('combinators', function() {
         deepEqual(v3, M.zero);
     });
     
+    test("AppP", function() {
+        var parser = C.appP(C.pure(function(a,b,c) {return [a,b,c];}),
+                            iz1.item,
+                            iz1.satisfy(function(x) {return x > 2;}),
+                            iz1.item);
+        var v1 = parser.parse([1,2,3,4,5], 'hi'),
+            v2 = parser.parse([5,6,7,8,9], 'bye'),
+            v3 = parser.parse([5,6], 'goodbye');
+        deepEqual(v1, M.zero);
+        deepEqual(v2, good([8,9], 'bye', [5,6,7]));
+        deepEqual(v3, M.zero);
+    });
+    
     test("Optional", function() {
         var parser = C.optional(iz1.literal(3), 'blargh'),
             v1 = parser.parse([1,2,3], 'hi'),
