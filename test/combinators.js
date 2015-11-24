@@ -296,14 +296,18 @@ module('combinators', function() {
     });
     
     test("AppP -- type error", function() {
+        var autoFail = false;
         try {
             var parser = C.appP(function() {}, iz1.item);
-            deepEqual(true, false);
+            autoFail = true;
         } catch(e) {
             var obj = JSON.parse(e.message);
             deepEqual(obj.message, 'type error');
             deepEqual(obj.function, 'appP');
             deepEqual(obj.expected, 'Parser');
+        }
+        if (autoFail) {
+            deepEqual(true, 'failed to notice type error');
         }
     });
     
