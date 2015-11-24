@@ -295,6 +295,18 @@ module('combinators', function() {
         deepEqual(v3, M.zero);
     });
     
+    test("AppP -- type error", function() {
+        try {
+            var parser = C.appP(function() {}, iz1.item);
+            deepEqual(true, false);
+        } catch(e) {
+            var obj = JSON.parse(e.message);
+            deepEqual(obj.message, 'type error');
+            deepEqual(obj.function, 'appP');
+            deepEqual(obj.expected, 'Parser');
+        }
+    });
+    
     test("Optional", function() {
         var parser = C.optional(iz1.literal(3), 'blargh'),
             v1 = parser.parse([1,2,3], 'hi'),
