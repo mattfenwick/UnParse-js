@@ -341,6 +341,30 @@ module('combinators', function() {
         deepEqual(val.parse([2,3,4], {}), good([4], {}, 2));
     });
     
+    test("SepBy0", function() {
+        var parser = C.sepBy0(iz1.oneOf('pq'), iz1.oneOf('st')),
+            val1 = parser.parse('abc', {}),
+            val2 = parser.parse('ppabc', {}),
+            val3 = parser.parse('psabc', {}),
+            val4 = parser.parse('psqtqabc', {});
+        deepEqual(val1, good('abc', {}, {'separators': [], 'values': []}));
+        deepEqual(val2, good('pabc', {}, {'separators': [], 'values': ['p']}));
+        deepEqual(val3, good('sabc', {}, {'separators': [], 'values': ['p']}));
+        deepEqual(val4, good('abc', {}, {'separators': ['s', 't'], 'values': ['p', 'q', 'q']}));
+    });
+    
+    test("SepBy1", function() {
+        var parser = C.sepBy1(iz1.oneOf('pq'), iz1.oneOf('st')),
+            val1 = parser.parse('abc', {}),
+            val2 = parser.parse('ppabc', {}),
+            val3 = parser.parse('psabc', {}),
+            val4 = parser.parse('psqtqabc', {});
+        deepEqual(val1, M.zero);
+        deepEqual(val2, good('pabc', {}, {'separators': [], 'values': ['p']}));
+        deepEqual(val3, good('sabc', {}, {'separators': [], 'values': ['p']}));
+        deepEqual(val4, good('abc', {}, {'separators': ['s', 't'], 'values': ['p', 'q', 'q']}));    
+    });
+    
     test("Lookahead", function() {
         var parser = C.lookahead(iz3.oneOf([2,3]));
         deepEqual(parser.parse([2,3,4,5], 41), good([2,3,4,5], 41, 2));
