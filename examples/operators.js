@@ -38,8 +38,22 @@ var letter = C.position.satisfy(function(c) {return c >= 'a' && c <= 'z';}),
     c = O.chainL2(C.app(node, C.position.oneOf('+-')), b);
 
 var q = c.parse('abc**def**ghi^jkl^mno+pqr+stu', [1,1]);
-
 console.log(util.inspect(q, {'depth': null}));
+
+var exp = O.chainL3(C.position.string('**'), word),
+    caret = O.chainR3(C.position.literal('^'), exp),
+    add = O.chainL3(C.position.oneOf('+-'), caret);
+
+var parsed = add.parse('abc**def**ghi^jkl^mno+pqr+stu', [1, 1]);
+//var parsed = exp.parse('abc**def**ghi', [1, 1]);
+//var parsed = caret.parse('abc^def^ghi', [1, 1]);
+//var parsed = exp.parse('abc**def**ghi', [1, 1]);
+if (parsed.status === 'success') {
+    console.log(util.inspect(parsed, {'depth': null}));
+    console.log(O.dump(parsed.value.result));
+} else {
+    console.log(util.inspect(parsed, {'depth': null}));
+}
 
 module.exports = {
     'add': add,
