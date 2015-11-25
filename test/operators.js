@@ -65,7 +65,7 @@ module('operators', function() {
         deepEqual(a.status, 'success');
         deepEqual(v.rest, 'abc');
         deepEqual(v.state, 'state');
-        deepEqual(v.result.dump(), '(+ 8 (+ 4 (+ 2 1)))');
+        deepEqual(O.dump(v.result), '(+ 8 (+ 4 (+ 2 1)))');
     });
     
     test("chainL3", function() {
@@ -78,7 +78,7 @@ module('operators', function() {
         deepEqual(a.status, 'success');
         deepEqual(v.rest, 'abc');
         deepEqual(v.state, 'state');
-        deepEqual(v.result.dump(), '(+ (+ (+ 8 4) 2) 1)');
+        deepEqual(O.dump(v.result), '(+ (+ (+ 8 4) 2) 1)');
     });
     
     test("prefix", function() {
@@ -119,6 +119,26 @@ module('operators', function() {
         deepEqual(v.rest, 'abc');
         deepEqual(v.state, 'state');
         deepEqual(v.result, '(((8)?)?)?');
+    });
+
+    test("prefix3", function() {
+        var parser = O.prefix3(C.basic.literal('!'), num),
+            a = parser.parse('!!!8abc', 'state'),
+            v = a.value;
+        deepEqual(a.status, 'success');
+        deepEqual(v.rest, 'abc');
+        deepEqual(v.state, 'state');
+        deepEqual(O.dump(v.result), '(! (! (! 8)))');
+    });
+    
+    test("postfix3", function() {
+        var parser = O.postfix3(C.basic.literal('?'), num),
+            a = parser.parse('8???abc', 'state'),
+            v = a.value;
+        deepEqual(a.status, 'success');
+        deepEqual(v.rest, 'abc');
+        deepEqual(v.state, 'state');
+        deepEqual(O.dump(v.result), '(((8 ?) ?) ?)');
     });
 
 });
