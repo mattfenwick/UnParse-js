@@ -25,15 +25,6 @@ module('operators', function() {
         deepEqual(v.result, [[[8,4],2],1]);
     });
     
-    test("chainR", function() {
-        var parser = O.chainR(plus, num),
-            a = parser.parse('8+4+2+1abc', 'state'),
-            v = a.value;
-        deepEqual(a.status, 'success');
-        deepEqual(v.rest, 'abc');
-        deepEqual(v.state, 'state');
-        deepEqual(v.result, [8,[4,[2,1]]]);
-    });
     test("chainL2", function() {
         var parser = O.chainL2(plus, num),
             a = parser.parse('8+4+2+1abc', 'state'),
@@ -44,6 +35,16 @@ module('operators', function() {
         deepEqual(v.result, [[[8,4],2],1]);
     });
     
+    test("chainR", function() {
+        var parser = O.chainR(plus, num),
+            a = parser.parse('8+4+2+1abc', 'state'),
+            v = a.value;
+        deepEqual(a.status, 'success');
+        deepEqual(v.rest, 'abc');
+        deepEqual(v.state, 'state');
+        deepEqual(v.result, [8,[4,[2,1]]]);
+    });
+
     test("chainR2", function() {
         var parser = O.chainR2(plus, num),
             a = parser.parse('8+4+2+1abc', 'state'),
@@ -52,6 +53,32 @@ module('operators', function() {
         deepEqual(v.rest, 'abc');
         deepEqual(v.state, 'state');
         deepEqual(v.result, [8,[4,[2,1]]]);
+    });
+    
+    test("chainR3", function() {
+        var p = C.basic.literal('+'),
+            n = C.basic.oneOf('0123456789'),
+            util = require('util');
+        var parser = O.chainR3(p, n),
+            a = parser.parse('8+4+2+1abc', 'state'),
+            v = a.value;
+        deepEqual(a.status, 'success');
+        deepEqual(v.rest, 'abc');
+        deepEqual(v.state, 'state');
+        deepEqual(v.result.dump(), '(+ 8 (+ 4 (+ 2 1)))');
+    });
+    
+    test("chainL3", function() {
+        var p = C.basic.literal('+'),
+            n = C.basic.oneOf('0123456789'),
+            util = require('util');
+        var parser = O.chainL3(p, n),
+            a = parser.parse('8+4+2+1abc', 'state'),
+            v = a.value;
+        deepEqual(a.status, 'success');
+        deepEqual(v.rest, 'abc');
+        deepEqual(v.state, 'state');
+        deepEqual(v.result.dump(), '(+ (+ (+ 8 4) 2) 1)');
     });
     
     test("prefix", function() {
