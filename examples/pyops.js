@@ -34,7 +34,7 @@ var expr = C.error('undefined');
 
 var exp = right(str('**'), num);
 var signs = pre(oneOf('+-~'), exp);
-var mult = left(oneOf('*/%'), signs); // TODO also '//'
+var mult = left(C.alt(str('//'), oneOf('*/%')), signs);
 var add = left(oneOf('+-'), mult);
 var shift = left(C.alt.apply(null, [">>", "<<"].map(str)), add);
 var and = left(tok('&'), shift);
