@@ -32,7 +32,17 @@ var letter = C.position.satisfy(function(c) {
 
 var expr = C.error('undefined');
 
-var exp = right(str('**'), num);
+var parens = C.seq(tok('('), expr, tok(')')),
+    tuple = C.seq(tok('('), C.sepBy1(expr, tok(',')), C.optional(tok(',')), tok(')')),
+    list = C.seq(tok('['), C.sepBy0(expr, tok(',')), tok(']')),
+    pySet = C.seq(tok('{'), C.sepBy0(expr, tok(',')), tok('}')),
+    map = pySet, // TODO kv-pairs
+    atom = C.alt(parens, num, pyVar, tuple, list, map, pySet);
+var prop = C.seq(tok('.'), atom),
+    slot = C.seq(tok('['), expr, tok(']')),
+    apply = C.seq(tok('('), C.sepBy0(expr, tok(',')), tok(')')),
+    trailer = post(C.alt(prop, slot, apply), atom);
+var exp = right(str('**'), trailer);
 var signs = pre(oneOf('+-~'), exp);
 var mult = left(C.alt(str('//'), oneOf('*/%')), signs);
 var add = left(oneOf('+-'), mult);
