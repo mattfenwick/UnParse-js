@@ -51,7 +51,7 @@ module.exports = function(grunt) {
             },
             "lib": {
                 "options": options,
-                "src": ["lib/*.js", "examples/*.js"]
+                "src": ["lib/*.js", "examples/*.js", "test/*.js"]
             }
         }
     });

@@ -2,7 +2,6 @@
 
 var O = require('../lib/operators'),
     C = require('../lib/combinators'),
-    M = require('../lib/maybeerror'),
     assert = require('assert');
 
 var module = describe,
@@ -10,15 +9,11 @@ var module = describe,
     deepEqual = assert.deepEqual;
 
 module('operators', function() {
-    var plus = C.seq2R(C.basic.literal('+'), C.pure(function(x,y) {return [x, y];})),
-        bang = C.seq2R(C.basic.literal('!'), C.pure(function(x) {return '!(' + x + ')';})),
-        question = C.seq2R(C.basic.literal('?'), C.pure(function q(y) {return '(' + y + ')?';})),
-        num = C.fmap(parseFloat, C.basic.oneOf('0123456789'));
+    var num = C.fmap(parseFloat, C.basic.oneOf('0123456789'));
     
     test("chainR", function() {
         var p = C.basic.literal('+'),
-            n = C.basic.oneOf('0123456789'),
-            util = require('util');
+            n = C.basic.oneOf('0123456789');
         var parser = O.chainR(p, n),
             a = parser.parse('8+4+2+1abc', 'state'),
             v = a.value;
@@ -30,8 +25,7 @@ module('operators', function() {
     
     test("chainL", function() {
         var p = C.basic.literal('+'),
-            n = C.basic.oneOf('0123456789'),
-            util = require('util');
+            n = C.basic.oneOf('0123456789');
         var parser = O.chainL(p, n),
             a = parser.parse('8+4+2+1abc', 'state'),
             v = a.value;

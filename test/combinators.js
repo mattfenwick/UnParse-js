@@ -227,7 +227,7 @@ module('combinators', function() {
             v3 = C.mapError(f, C.pure(82)).parse('123abc', null);
         deepEqual(v1, M.error(6));
         deepEqual(v2, M.zero);
-        deepEqual(v3, good('123abc', null, 82))        
+        deepEqual(v3, good('123abc', null, 82));
     });
 
     test("Put", function() {
@@ -270,9 +270,9 @@ module('combinators', function() {
     });
     
     test("App", function() {
-        var parser = C.app(function(x,y,z) {return x + y * z;}, 
-                           iz1.item, 
-                           iz1.satisfy(function(x) {return x > 2;}), 
+        var parser = C.app(function(x,y,z) {return x + y * z;},
+                           iz1.item,
+                           iz1.satisfy(function(x) {return x > 2;}),
                            iz1.item);
         var v1 = parser.parse([1,2,3,4,5], 'hi'),
             v2 = parser.parse([5,6,7,8,9], 'bye'),
@@ -362,7 +362,7 @@ module('combinators', function() {
         deepEqual(val1, M.zero);
         deepEqual(val2, good('pabc', {}, {'separators': [], 'values': ['p']}));
         deepEqual(val3, good('sabc', {}, {'separators': [], 'values': ['p']}));
-        deepEqual(val4, good('abc', {}, {'separators': ['s', 't'], 'values': ['p', 'q', 'q']}));    
+        deepEqual(val4, good('abc', {}, {'separators': ['s', 't'], 'values': ['p', 'q', 'q']}));
     });
     
     test("Lookahead", function() {

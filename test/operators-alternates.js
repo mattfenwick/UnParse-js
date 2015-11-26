@@ -2,7 +2,6 @@
 
 var O = require('../lib/operators-alternates'),
     C = require('../lib/combinators'),
-    M = require('../lib/maybeerror'),
     assert = require('assert');
 
 var module = describe,
@@ -72,7 +71,7 @@ module('operators-alternates', function() {
         deepEqual(a.status, 'success');
         deepEqual(v.rest, 'abc');
         deepEqual(v.state, 'state');
-        deepEqual(v.result, '(((8)?)?)?');        
+        deepEqual(v.result, '(((8)?)?)?');
     });
 
     test("prefix2", function() {

@@ -45,26 +45,26 @@ module('cst', function() {
     });
     
     test("AddErrorSuccess", function() {
-        deepEqual(addError('oops', basic.item).parse('abc', null), 
+        deepEqual(addError('oops', basic.item).parse('abc', null),
                          good('bc', null, 'a'));
     });
 
     test("AddErrorFail", function() {
-        deepEqual(addError('oops', zero).parse('abc', 12), 
+        deepEqual(addError('oops', zero).parse('abc', 12),
                          M.zero);
     });
 
     test("AddErrorError", function() {
-        deepEqual(addError('oops', error(['err'])).parse('abc', 12), 
+        deepEqual(addError('oops', error(['err'])).parse('abc', 12),
                          err([['oops', 12], 'err']));
     });
 
     test("NodeSuccess", function() {
-        deepEqual(node('blar').parse('abc', 17), 
+        deepEqual(node('blar').parse('abc', 17),
                          good('abc', 17, cstnode('blar', 17, 17)));
-        deepEqual(node('blar', ['a', count.item]).parse('def', 17), 
+        deepEqual(node('blar', ['a', count.item]).parse('def', 17),
                          good('ef', 18, cstnode('blar', 17, 18, ['a', 'd'])));
-        deepEqual(node('blar', ['a', count.item], ['b', count.item]).parse('def', 17), 
+        deepEqual(node('blar', ['a', count.item], ['b', count.item]).parse('def', 17),
                          good('f', 19, cstnode('blar', 17, 19, ['a', 'd'], ['b', 'e'])));
     });
     
@@ -74,9 +74,9 @@ module('cst', function() {
     });
     
     test("NodeError", function() {
-        deepEqual(node('blar', ['a', cut('oops', zero)]).parse('abc', 17), 
+        deepEqual(node('blar', ['a', cut('oops', zero)]).parse('abc', 17),
                          err([['blar', 17], ['oops', 17]]));
-        deepEqual(node('blar', ['a', count.item], ['b', cut('oops', zero)]).parse('def', 17), 
+        deepEqual(node('blar', ['a', count.item], ['b', cut('oops', zero)]).parse('def', 17),
                          err([['blar', 17], ['oops', 18]]));
     });
 });
