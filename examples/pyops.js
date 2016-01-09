@@ -55,7 +55,6 @@ var comparisons = ["in", "not in", "is", "is not", "<", ">", "<=", ">=", "!=", "
 var not = pre(str('not'), comp);
 var and2 = left(str('and'), not);
 var or2 = left(str('or'), and2);
-var ifElse = or2; // TODO
 var ifMiddle = C.seq(str("if"), expr, str("else")),
     ifElse = right(ifMiddle, or2); // TODO let's use ternaryR instead
 var fnStart = C.seq(str("lambda"), ws, C.sepBy0(pyVar, tok(',')), tok(':')),//, ws, C.sepBy0(tok(','), pyVar), tok(":")),
