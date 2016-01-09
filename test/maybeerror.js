@@ -15,9 +15,9 @@ module('maybeerror', function() {
     }
     
     function f_b(x){
-        if (x == 3) {
+        if (x === 3) {
             return M.pure(x + 1);
-        } else if (x == 4) {
+        } else if (x === 4) {
             return M.zero;
         }
         return M.error('e1');
