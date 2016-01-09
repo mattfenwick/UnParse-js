@@ -23,7 +23,7 @@ var letter = C.position.satisfy(function(c) {
         return (code >= 97 && code <= 122) || (code >= 65 && code <= 90);
     }),
     word = C.fmap(function(cs) {return cs.join('');}, C.many1(letter)),
-    reserved = {'lambda': 1, 'if': 1, 'else': 1, 
+    reserved = {'lambda': 1, 'if': 1, 'else': 1,
                 'and': 1, 'or': 1, 'not': 1,
                 'in': 1, 'is': 1},
     pyVar = C.check(function(w) {
