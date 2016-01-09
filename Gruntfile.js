@@ -16,6 +16,7 @@ var options = {
     "latedef"       : true,     // Prohibit variable use before definition.
     "newcap"        : true,     // Require capitalization of all constructor functions e.g. `new F()`.
     "noarg"         : true,     // Prohibit use of `arguments.caller` and `arguments.callee`.
+    "node"          : true,
     "noempty"       : true,     // Prohibit use of empty blocks.
     "nonbsp"        : true,
     "nonew"         : true,     // Prohibit use of constructors for side-effects.
