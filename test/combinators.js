@@ -395,6 +395,25 @@ module('combinators', function() {
     test("GetState", function() {
         deepEqual(C.getState.parse('abc', 123), good('abc', 123, 123));
     });
+    
+    test("when using function where Parser is expected, the 'actual' key appears in error message", function() {
+        var p = iz1.literal(2);
+        try {
+            var seq = C.seq(function() {}, p);
+            deepEqual(0, 1, "expected exception");
+        } catch(e) {
+            deepEqual(JSON.parse(e.message).actual, 'function');
+        }
+    });
+    
+    test("when using non-function where Parser is expected, the 'actual' key appears in error message", function() {
+        try {
+            var seq = C.seq(3);
+            deepEqual(0, 1, "expected exception");
+        } catch(e) {
+            deepEqual(JSON.parse(e.message).actual, '3');
+        }
+    });
 
 });
 
