@@ -1,3 +1,4 @@
+/* globals describe: false, it: false */
 "use strict";
 
 var Cst = require('../lib/cst'),
