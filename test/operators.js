@@ -1,14 +1,15 @@
+/* globals describe: false, it: false */
 "use strict";
 
 var O = require('../lib/operators'),
     C = require('../lib/combinators'),
     assert = require('assert');
 
-var module = describe,
+var testModule = describe,
     test = it,
     deepEqual = assert.deepEqual;
 
-module('operators', function() {
+testModule('operators', function() {
     var num = C.fmap(parseFloat, C.basic.oneOf('0123456789'));
     
     test("chainR", function() {

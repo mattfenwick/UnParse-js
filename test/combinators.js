@@ -1,14 +1,15 @@
+/* globals describe: false, it: false */
 "use strict";
 
 var C = require('../lib/combinators'),
     M = require('../lib/maybeerror'),
     assert = require("assert");
 
-var module = describe, // magic mocha variables -- `describe` and `it`
+var testModule = describe, // magic mocha variables -- `describe` and `it`
     test = it,
     deepEqual = assert.deepEqual;
 
-module('combinators', function() {
+testModule('combinators', function() {
 
     var iz1 = C.basic,
         iz2 = C.position,
@@ -19,7 +20,7 @@ module('combinators', function() {
     }
 
 
-    module("basic", function() {
+    testModule("basic", function() {
         test("item", function() {
             deepEqual(iz1.item.parse('', null), M.zero);
             deepEqual(iz1.item.parse('abcdef', null), good('bcdef', null, 'a'));
@@ -60,7 +61,7 @@ module('combinators', function() {
         });
     });
     
-    module("line/column", function() {
+    testModule("line/column", function() {
         test("ItemPosition", function() {
             deepEqual(iz2.item.parse('', [1, 1]), M.zero);
             deepEqual(iz2.item.parse('abcdef', [1, 1]), good('bcdef', [1, 2], 'a'));
@@ -102,7 +103,7 @@ module('combinators', function() {
         });
     });
     
-    module("count tokens", function() {
+    testModule("count tokens", function() {
         test("ItemPosition", function() {
             deepEqual(iz3.item.parse('', 8), M.zero);
             deepEqual(iz3.item.parse('abcdef', 5), good('bcdef', 6, 'a'));
@@ -298,7 +299,7 @@ module('combinators', function() {
     test("AppP -- type error", function() {
         var autoFail = false;
         try {
-            var parser = C.appP(function() {}, iz1.item);
+            C.appP(function() {}, iz1.item);
             autoFail = true;
         } catch(e) {
             var obj = JSON.parse(e.message);
@@ -399,7 +400,7 @@ module('combinators', function() {
     test("when using function where Parser is expected, the 'actual' key appears in error message", function() {
         var p = iz1.literal(2);
         try {
-            var seq = C.seq(function() {}, p);
+            C.seq(function() {}, p);
             deepEqual(0, 1, "expected exception");
         } catch(e) {
             deepEqual(JSON.parse(e.message).actual, 'function');
@@ -408,7 +409,7 @@ module('combinators', function() {
     
     test("when using non-function where Parser is expected, the 'actual' key appears in error message", function() {
         try {
-            var seq = C.seq(3);
+            C.seq(3);
             deepEqual(0, 1, "expected exception");
         } catch(e) {
             deepEqual(JSON.parse(e.message).actual, '3');

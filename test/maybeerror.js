@@ -1,14 +1,15 @@
+/* globals describe: false, it: false */
 'use strict';
 
 var M = require('../lib/maybeerror'),
     assert = require('assert');
 
-var module = describe,
+var testModule = describe,
     test = it,
     deepEqual = assert.deepEqual,
     notDeepEqual = assert.notDeepEqual;
 
-module('maybeerror', function() {
+testModule('maybeerror', function() {
 
     function inc(x) {
         return x + 1;
