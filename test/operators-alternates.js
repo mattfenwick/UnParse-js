@@ -4,11 +4,11 @@ var O = require('../lib/operators-alternates'),
     C = require('../lib/combinators'),
     assert = require('assert');
 
-var module = describe,
+var testModule = describe,
     test = it,
     deepEqual = assert.deepEqual;
 
-module('operators-alternates', function() {
+testModule('operators-alternates', function() {
     var plus = C.seq2R(C.basic.literal('+'), C.pure(function(x,y) {return [x, y];})),
         bang = C.seq2R(C.basic.literal('!'), C.pure(function(x) {return '!(' + x + ')';})),
         question = C.seq2R(C.basic.literal('?'), C.pure(function q(y) {return '(' + y + ')?';})),

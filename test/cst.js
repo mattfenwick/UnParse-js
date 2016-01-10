@@ -5,11 +5,11 @@ var Cst = require('../lib/cst'),
     M = require('../lib/maybeerror'),
     assert = require("assert");
 
-var module = describe,
+var testModule = describe,
     test = it,
     deepEqual = assert.deepEqual;
 
-module('cst', function() {
+testModule('cst', function() {
     var cut = Cst.cut, addError = Cst.addError, node = Cst.node;
     var basic = C.basic, zero = C.zero, error = C.error, count = C.count;
     var err = M.error;

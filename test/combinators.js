@@ -4,11 +4,11 @@ var C = require('../lib/combinators'),
     M = require('../lib/maybeerror'),
     assert = require("assert");
 
-var module = describe, // magic mocha variables -- `describe` and `it`
+var testModule = describe, // magic mocha variables -- `describe` and `it`
     test = it,
     deepEqual = assert.deepEqual;
 
-module('combinators', function() {
+testModule('combinators', function() {
 
     var iz1 = C.basic,
         iz2 = C.position,
@@ -19,7 +19,7 @@ module('combinators', function() {
     }
 
 
-    module("basic", function() {
+    testModule("basic", function() {
         test("item", function() {
             deepEqual(iz1.item.parse('', null), M.zero);
             deepEqual(iz1.item.parse('abcdef', null), good('bcdef', null, 'a'));
@@ -60,7 +60,7 @@ module('combinators', function() {
         });
     });
     
-    module("line/column", function() {
+    testModule("line/column", function() {
         test("ItemPosition", function() {
             deepEqual(iz2.item.parse('', [1, 1]), M.zero);
             deepEqual(iz2.item.parse('abcdef', [1, 1]), good('bcdef', [1, 2], 'a'));
@@ -102,7 +102,7 @@ module('combinators', function() {
         });
     });
     
-    module("count tokens", function() {
+    testModule("count tokens", function() {
         test("ItemPosition", function() {
             deepEqual(iz3.item.parse('', 8), M.zero);
             deepEqual(iz3.item.parse('abcdef', 5), good('bcdef', 6, 'a'));
