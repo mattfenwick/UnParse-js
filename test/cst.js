@@ -8,20 +8,13 @@ var Cst = require('../lib/cst'),
 
 var testModule = describe,
     test = it,
-    deepEqual = assert.deepEqual;
+    deepEqual = assert.deepEqual,
+    good = C.good;
 
 testModule('cst', function() {
     var cut = Cst.cut, addError = Cst.addError, node = Cst.node;
     var basic = C.basic, zero = C.zero, error = C.error, count = C.count;
     var err = M.error;
-    
-    function good(rest, state, result) {
-        return M.pure({
-            'rest': rest,
-            'state': state,
-            'result': result
-        });
-    }
     
     function cstnode(name, start, end) {
         var pairs = Array.prototype.slice.call(arguments, 3),
@@ -34,7 +27,7 @@ testModule('cst', function() {
 
     
     test("CutSuccess", function() {
-        deepEqual(cut('oops', basic.item).parse('abc', null), good('bc', null, 'a'));
+        deepEqual(cut('oops', basic.item).parse('abc', null), good('a', 'bc', null));
     });
     
     test("CutFail", function() {
@@ -47,7 +40,7 @@ testModule('cst', function() {
     
     test("AddErrorSuccess", function() {
         deepEqual(addError('oops', basic.item).parse('abc', null),
-                         good('bc', null, 'a'));
+                         good('a', 'bc', null));
     });
 
     test("AddErrorFail", function() {
@@ -62,11 +55,11 @@ testModule('cst', function() {
 
     test("NodeSuccess", function() {
         deepEqual(node('blar').parse('abc', 17),
-                         good('abc', 17, cstnode('blar', 17, 17)));
+                         good(cstnode('blar', 17, 17), 'abc', 17));
         deepEqual(node('blar', ['a', count.item]).parse('def', 17),
-                         good('ef', 18, cstnode('blar', 17, 18, ['a', 'd'])));
+                         good(cstnode('blar', 17, 18, ['a', 'd']), 'ef', 18));
         deepEqual(node('blar', ['a', count.item], ['b', count.item]).parse('def', 17),
-                         good('f', 19, cstnode('blar', 17, 19, ['a', 'd'], ['b', 'e'])));
+                         good(cstnode('blar', 17, 19, ['a', 'd'], ['b', 'e']), 'f', 19));
     });
     
     test("NodeFailure", function() {
