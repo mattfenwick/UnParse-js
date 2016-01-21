@@ -181,27 +181,27 @@ testModule('combinators', function() {
             r1 = good(3, 'abc', null),
             r3 = M.zero,
             r4 = M.error('oops');
-        deepEqual(C.alt(g1, g2).parse('abc', null), r1);
-        deepEqual(C.alt(g1, b).parse('abc', null), r1);
-        deepEqual(C.alt(g1, e).parse('abc', null), r1);
-        deepEqual(C.alt(b, g1).parse('abc', null), r1);
-        deepEqual(C.alt(b, b).parse('abc', null), r3);
-        deepEqual(C.alt(b, e).parse('abc', null), r4);
-        deepEqual(C.alt(e, g1).parse('abc', null), r4);
-        deepEqual(C.alt(e, b).parse('abc', null), r4);
-        deepEqual(C.alt(e, e2).parse('abc', null), r4);
+        deepEqual(C.alt([g1, g2]).parse('abc', null), r1);
+        deepEqual(C.alt([g1, b]).parse('abc', null), r1);
+        deepEqual(C.alt([g1, e]).parse('abc', null), r1);
+        deepEqual(C.alt([b, g1]).parse('abc', null), r1);
+        deepEqual(C.alt([b, b]).parse('abc', null), r3);
+        deepEqual(C.alt([b, e]).parse('abc', null), r4);
+        deepEqual(C.alt([e, g1]).parse('abc', null), r4);
+        deepEqual(C.alt([e, b]).parse('abc', null), r4);
+        deepEqual(C.alt([e, e2]).parse('abc', null), r4);
     });
     
     test("AltCornerCases", function() {
-        deepEqual(C.alt().parse([1,2,3], null),
+        deepEqual(C.alt([]).parse([1,2,3], null),
                   M.zero);
-        deepEqual(C.alt(C.pure('h')).parse([1,2,3], null),
+        deepEqual(C.alt([C.pure('h')]).parse([1,2,3], null),
                   good('h', [1,2,3], null));
-        deepEqual(C.alt(C.error('oops')).parse([1,2,3], null),
+        deepEqual(C.alt([C.error('oops')]).parse([1,2,3], null),
                   M.error('oops'));
-        deepEqual(C.alt(C.zero).parse([1,2,3], null),
+        deepEqual(C.alt([C.zero]).parse([1,2,3], null),
                   M.zero);
-        var p1 = C.alt(C.zero, iz1.literal(1), iz1.literal(2), C.error('d'));
+        var p1 = C.alt([C.zero, iz1.literal(1), iz1.literal(2), C.error('d')]);
         deepEqual(p1.parse([1,3,4], null), good(1, [3,4], null));
         deepEqual(p1.parse([2,3,4], null), good(2, [3,4], null));
         deepEqual(p1.parse([3,3,4], null), M.error('d'));
@@ -290,16 +290,16 @@ testModule('combinators', function() {
     });
     
     test("Seq", function() {
-        var val = C.seq(iz1.item, iz1.literal(2), iz1.literal(8));
+        var val = C.seq([iz1.item, iz1.literal(2), iz1.literal(8)]);
         deepEqual(val.parse([3,2,4], {}), M.zero);
         deepEqual(val.parse([3,2,8,16], {}), good([3,2,8], [16], {}));
     });
     
     test("App", function() {
         var parser = C.app(function(x,y,z) {return x + y * z;},
-                           iz1.item,
-                           iz1.satisfy(function(x) {return x > 2;}),
-                           iz1.item);
+                           [iz1.item,
+                            iz1.satisfy(function(x) {return x > 2;}),
+                            iz1.item]);
         var v1 = parser.parse([1,2,3,4,5], 'hi'),
             v2 = parser.parse([5,6,7,8,9], 'bye'),
             v3 = parser.parse([5,6], 'goodbye');
@@ -310,9 +310,9 @@ testModule('combinators', function() {
     
     test("AppP", function() {
         var parser = C.appP(C.pure(function(a,b,c) {return [a,b,c];}),
-                            iz1.item,
-                            iz1.satisfy(function(x) {return x > 2;}),
-                            iz1.item);
+                            [iz1.item,
+                             iz1.satisfy(function(x) {return x > 2;}),
+                             iz1.item]);
         var v1 = parser.parse([1,2,3,4,5], 'hi'),
             v2 = parser.parse([5,6,7,8,9], 'bye'),
             v3 = parser.parse([5,6], 'goodbye');
@@ -324,7 +324,7 @@ testModule('combinators', function() {
     test("AppP -- type error", function() {
         var autoFail = false;
         try {
-            C.appP(function() {}, iz1.item);
+            C.appP(function() {}, [iz1.item]);
             autoFail = true;
         } catch(e) {
             var obj = JSON.parse(e.message);
@@ -432,7 +432,7 @@ testModule('combinators', function() {
     test("when using function where Parser is expected, the 'actual' key appears in error message", function() {
         var p = iz1.literal(2);
         try {
-            C.seq(function() {}, p);
+            C.seq([function() {}, p]);
             deepEqual(0, 1, "expected exception");
         } catch(e) {
             deepEqual(JSON.parse(e.message).actual, 'function');
@@ -441,7 +441,7 @@ testModule('combinators', function() {
     
     test("when using non-function where Parser is expected, the 'actual' key appears in error message", function() {
         try {
-            C.seq(3);
+            C.seq([3]);
             deepEqual(0, 1, "expected exception");
         } catch(e) {
             deepEqual(JSON.parse(e.message).actual, '3');
