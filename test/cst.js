@@ -25,6 +25,9 @@ testModule('cst', function() {
         return obj;
     }
 
+    function ct(c) {
+        return {'count': c};
+    }
     
     test("CutSuccess", function() {
         deepEqual(cut('oops', basic.item).parse('abc', null), good('a', 'bc', null));
@@ -54,12 +57,12 @@ testModule('cst', function() {
     });
 
     test("NodeSuccess", function() {
-        deepEqual(node('blar').parse('abc', 17),
-                         good(cstnode('blar', 17, 17), 'abc', 17));
-        deepEqual(node('blar', ['a', count.item]).parse('def', 17),
-                         good(cstnode('blar', 17, 18, ['a', 'd']), 'ef', 18));
-        deepEqual(node('blar', ['a', count.item], ['b', count.item]).parse('def', 17),
-                         good(cstnode('blar', 17, 19, ['a', 'd'], ['b', 'e']), 'f', 19));
+        deepEqual(node('blar').parse('abc', ct(17)),
+                         good(cstnode('blar', ct(17), ct(17)), 'abc', ct(17)));
+        deepEqual(node('blar', ['a', count.item]).parse('def', ct(17)),
+                         good(cstnode('blar', ct(17), ct(18), ['a', 'd']), 'ef', ct(18)));
+        deepEqual(node('blar', ['a', count.item], ['b', count.item]).parse('def', ct(17)),
+                         good(cstnode('blar', ct(17), ct(19), ['a', 'd'], ['b', 'e']), 'f', ct(19)));
     });
     
     test("NodeFailure", function() {
@@ -68,10 +71,10 @@ testModule('cst', function() {
     });
     
     test("NodeError", function() {
-        deepEqual(node('blar', ['a', cut('oops', zero)]).parse('abc', 17),
-                         err([['blar', 17], ['oops', 17]]));
-        deepEqual(node('blar', ['a', count.item], ['b', cut('oops', zero)]).parse('def', 17),
-                         err([['blar', 17], ['oops', 18]]));
+        deepEqual(node('blar', ['a', cut('oops', zero)]).parse('abc', ct(17)),
+                         err([['blar', ct(17)], ['oops', ct(17)]]));
+        deepEqual(node('blar', ['a', count.item], ['b', cut('oops', zero)]).parse('def', ct(17)),
+                         err([['blar', ct(17)], ['oops', ct(18)]]));
     });
 });
 

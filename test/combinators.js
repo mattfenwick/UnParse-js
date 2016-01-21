@@ -58,86 +58,96 @@ testModule('combinators', function() {
     });
     
     testModule("line/column", function() {
+
+        function pos(p) {
+            return {'position': p};
+        }
+
         test("ItemPosition", function() {
-            deepEqual(iz2.item.parse('', [1, 1]), M.zero);
-            deepEqual(iz2.item.parse('abcdef', [1, 1]), good('a', 'bcdef', [1, 2]));
-            deepEqual(iz2.item.parse('\nbcdef', [1, 1]), good('\n', 'bcdef', [2, 1]));
+            deepEqual(iz2.item.parse('', pos([1, 1])), M.zero);
+            deepEqual(iz2.item.parse('abcdef', pos([1, 1])), good('a', 'bcdef', pos([1, 2])));
+            deepEqual(iz2.item.parse('\nbcdef', pos([1, 1])), good('\n', 'bcdef', pos([2, 1])));
         });
 
         test("Literal", function() {
             var val = iz2.literal('3');
-            deepEqual(val.parse('345', [3, 8]), good('3', '45', [3, 9]));
-            deepEqual(val.parse('45', [3, 8]), M.zero);
+            deepEqual(val.parse('345', pos([3, 8])), good('3', '45', pos([3, 9])));
+            deepEqual(val.parse('45', pos([3, 8])), M.zero);
         });
         
         test("Satisfy", function() {
-            var v1 = iz2.satisfy(function(x) {return x > '3';}).parse('123', [2, 2]),
-                v2 = iz2.satisfy(function(x) {return x < '3';}).parse('123', [2, 2]);
+            var v1 = iz2.satisfy(function(x) {return x > '3';}).parse('123', pos([2, 2])),
+                v2 = iz2.satisfy(function(x) {return x < '3';}).parse('123', pos([2, 2]));
             deepEqual(v1, M.zero);
-            deepEqual(v2, good('1', '23', [2, 3]));
+            deepEqual(v2, good('1', '23', pos([2, 3])));
         });
         
         test("String", function() {
             var parser = iz2.string('abc'),
-                v1 = parser.parse('abcdef', [4, 3]),
-                v2 = parser.parse('abdef', [4, 3]);
-            deepEqual(v1, good('abc', 'def', [4, 6]));
+                v1 = parser.parse('abcdef', pos([4, 3])),
+                v2 = parser.parse('abdef', pos([4, 3]));
+            deepEqual(v1, good('abc', 'def', pos([4, 6])));
             deepEqual(v2, M.zero);
         });
         
         test("Not1", function() {
             var val = iz2.not1(iz2.literal('2'));
-            deepEqual(val.parse('234', [1, 1]), M.zero);
-            deepEqual(val.parse('345', [1, 1]), good('3', '45', [1, 2]));
+            deepEqual(val.parse('234', pos([1, 1])), M.zero);
+            deepEqual(val.parse('345', pos([1, 1])), good('3', '45', pos([1, 2])));
         });
         
         test("oneOf", function() {
             var p = iz2.oneOf('abc');
-            deepEqual(p.parse('cqrs', [3,4]), good('c', 'qrs', [3,5]));
-            deepEqual(p.parse('aqrs', [8,1]), good('a', 'qrs', [8,2]));
-            deepEqual(p.parse('dqrs', [2,2]), M.zero);
+            deepEqual(p.parse('cqrs', pos([3,4])), good('c', 'qrs', pos([3,5])));
+            deepEqual(p.parse('aqrs', pos([8,1])), good('a', 'qrs', pos([8,2])));
+            deepEqual(p.parse('dqrs', pos([2,2])), M.zero);
         });
     });
     
     testModule("count tokens", function() {
+    
+        function ct(c) {
+            return {'count': c};
+        }
+        
         test("ItemPosition", function() {
-            deepEqual(iz3.item.parse('', 8), M.zero);
-            deepEqual(iz3.item.parse('abcdef', 5), good('a', 'bcdef', 6));
-            deepEqual(iz3.item.parse('\nbcdef', 100), good('\n', 'bcdef', 101));
+            deepEqual(iz3.item.parse('', ct(8)), M.zero);
+            deepEqual(iz3.item.parse('abcdef', ct(5)), good('a', 'bcdef', ct(6)));
+            deepEqual(iz3.item.parse('\nbcdef', ct(100)), good('\n', 'bcdef', ct(101)));
         });
 
         test("Literal", function() {
             var val = iz3.literal('3');
-            deepEqual(val.parse('345', 8), good('3', '45', 9));
-            deepEqual(val.parse('45', 8), M.zero);
+            deepEqual(val.parse('345', ct(8)), good('3', '45', ct(9)));
+            deepEqual(val.parse('45', ct(8)), M.zero);
         });
         
         test("Satisfy", function() {
-            var v1 = iz3.satisfy(function(x) {return x > '3';}).parse('123', 22),
-                v2 = iz3.satisfy(function(x) {return x < '3';}).parse('123', 22);
+            var v1 = iz3.satisfy(function(x) {return x > '3';}).parse('123', ct(22)),
+                v2 = iz3.satisfy(function(x) {return x < '3';}).parse('123', ct(22));
             deepEqual(v1, M.zero);
-            deepEqual(v2, good('1', '23', 23));
+            deepEqual(v2, good('1', '23', ct(23)));
         });
         
         test("String", function() {
             var parser = iz3.string('abc'),
-                v1 = parser.parse('abcdef', 43),
-                v2 = parser.parse('abdef', 43);
-            deepEqual(v1, good('abc', 'def', 46));
+                v1 = parser.parse('abcdef', ct(43)),
+                v2 = parser.parse('abdef', ct(43));
+            deepEqual(v1, good('abc', 'def', ct(46)));
             deepEqual(v2, M.zero);
         });
         
         test("Not1", function() {
             var val = iz3.not1(iz3.literal('2'));
-            deepEqual(val.parse('234', 61), M.zero);
-            deepEqual(val.parse('345', 61), good('3', '45', 62));
+            deepEqual(val.parse('234', ct(61)), M.zero);
+            deepEqual(val.parse('345', ct(61)), good('3', '45', ct(62)));
         });
         
         test("oneOf", function() {
             var p = iz3.oneOf('abc');
-            deepEqual(p.parse('cqrs', 4), good('c', 'qrs', 5));
-            deepEqual(p.parse('aqrs', 8), good('a', 'qrs', 9));
-            deepEqual(p.parse('dqrs', 7), M.zero);
+            deepEqual(p.parse('cqrs', ct(4)), good('c', 'qrs', ct(5)));
+            deepEqual(p.parse('aqrs', ct(8)), good('a', 'qrs', ct(9)));
+            deepEqual(p.parse('dqrs', ct(7)), M.zero);
         });
     });
     
@@ -229,19 +239,38 @@ testModule('combinators', function() {
 
     test("Put", function() {
         var val = C.put('xyz');
-        deepEqual(val.parse('abc', []), good(null, 'xyz', []));
+        deepEqual(val.parse('abc', []), good('abc', 'xyz', []));
+    });
+    
+    test("Update", function() {
+        var parser = C.update(function(x) {return x + 'z';});
+        deepEqual(parser.parse('abc', []), good('abc', 'abcz', []));
     });
     
     test("PutState", function() {
         var v1 = C.putState(29).parse('abc123', 2);
-        deepEqual(v1, good(null, 'abc123', 29));
+        deepEqual(v1, good(2, 'abc123', 29));
     });
     
     test("UpdateState", function() {
         var v1 = C.updateState(function(x) {return x * 4;}).parse('abc', 18);
-        deepEqual(v1, good(null, 'abc', 72));
+        deepEqual(v1, good(18, 'abc', 72));
     });
         
+    test("PutStateForKey", function() {
+        var s1 = {'mykey': 3},
+            s2 = {'mykey': 4};
+        var parser = C.putStateForKey('mykey', 4);
+        deepEqual(parser.parse('abc', s1), good(3, 'abc', s2));
+    });
+    
+    test("UpdateStateForKey", function() {
+        var s1 = {'mykey': 3},
+            s2 = {'mykey': 4};
+        var parser = C.updateStateForKey('mykey', function(x) {return x + 1;});
+        deepEqual(parser.parse('abc', s1), good(3, 'abc', s2));
+    });
+    
     test("Check", function() {
         var val = C.check(function(x) {return x.length > 3;}, C.get);
         deepEqual(val.parse('abcde', []), good('abcde', 'abcde', []));
@@ -363,10 +392,11 @@ testModule('combinators', function() {
     });
     
     test("Lookahead", function() {
-        var parser = C.lookahead(iz3.oneOf([2,3]));
-        deepEqual(parser.parse([2,3,4,5], 41), good(2, [2,3,4,5], 41));
-        deepEqual(parser.parse([3,4,5], 41), good(3, [3,4,5], 41));
-        deepEqual(parser.parse([4,5], null), M.zero);
+        var parser = C.lookahead(iz3.oneOf([2,3])),
+            s = {'count': 41};
+        deepEqual(parser.parse([2,3,4,5], s), good(2, [2,3,4,5], s));
+        deepEqual(parser.parse([3,4,5], s), good(3, [3,4,5], s));
+        deepEqual(parser.parse([4,5], s), M.zero);
     });
     
     test("Not0", function() {
@@ -391,6 +421,12 @@ testModule('combinators', function() {
     
     test("GetState", function() {
         deepEqual(C.getState.parse('abc', 123), good(123, 'abc', 123));
+    });
+    
+    test("GetStateForKey", function() {
+        var s1 = {'mykey': 4};
+        var parser = C.getStateForKey('mykey');
+        deepEqual(parser.parse('abc', s1), good(4, 'abc', s1))
     });
     
     test("when using function where Parser is expected, the 'actual' key appears in error message", function() {
