@@ -426,7 +426,7 @@ testModule('combinators', function() {
     test("GetStateForKey", function() {
         var s1 = {'mykey': 4};
         var parser = C.getStateForKey('mykey');
-        deepEqual(parser.parse('abc', s1), good(4, 'abc', s1))
+        deepEqual(parser.parse('abc', s1), good(4, 'abc', s1));
     });
     
     test("when using function where Parser is expected, the 'actual' key appears in error message", function() {
