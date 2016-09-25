@@ -375,6 +375,20 @@ testModule('combinators', function() {
         deepEqual(val.parse([3,4,5], {}), good(null, [3,4,5], {}));
     });
     
+    test("Repeat: count == 0", function() {
+        var val = C.repeat(0, iz1.literal(4));
+        deepEqual(val.parse("0123", {}), good([], "0123", {}));
+        deepEqual(val.parse("4012", {}), good([], "4012", {}));
+    });
+    
+    test("Repeat: count > 0", function() {
+        var val = C.repeat(2, iz1.literal('4'));
+        deepEqual(val.parse("012", {}), M.zero);
+        deepEqual(val.parse("4012", {}), M.zero);
+        deepEqual(val.parse("44012", {}), good(['4', '4'], "012", {}));
+        deepEqual(val.parse("444012", {}), good(['4', '4'], "4012", {}));
+    });
+    
     test("Commit", function() {
         var val = C.commit('bag-agg', iz1.literal(2));
         deepEqual(val.parse([2,3,4], 'hi'), good(2, [3,4], 'hi'));
