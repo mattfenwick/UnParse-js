@@ -16,7 +16,7 @@ testModule('combinators', function() {
         iz2 = C.position,
         iz3 = C.count;
 
-    testModule("basic", function() {
+    testModule("Itemizer/basic", function() {
         test("item", function() {
             deepEqual(iz1.item.parse('', null), M.zero);
             deepEqual(iz1.item.parse('abcdef', null), good('a', 'bcdef', null));
@@ -57,7 +57,7 @@ testModule('combinators', function() {
         });
     });
     
-    testModule("line/column", function() {
+    testModule("Itemizer/position", function() {
         test("ItemPosition", function() {
             deepEqual(iz2.item.parse('', [1, 1]), M.zero);
             deepEqual(iz2.item.parse('abcdef', [1, 1]), good('a', 'bcdef', [1, 2]));
@@ -99,7 +99,7 @@ testModule('combinators', function() {
         });
     });
     
-    testModule("count tokens", function() {
+    testModule("Itemizer/count", function() {
         test("ItemPosition", function() {
             deepEqual(iz3.item.parse('', 8), M.zero);
             deepEqual(iz3.item.parse('abcdef', 5), good('a', 'bcdef', 6));
