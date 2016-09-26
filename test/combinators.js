@@ -226,20 +226,26 @@ testModule('combinators', function() {
         deepEqual(v2, M.zero);
         deepEqual(v3, good(82, '123abc', null));
     });
+    
+    test("Update", function() {
+        var v1 = C.update(function(x) {return x + 'qrs';}).parse('abc', 18);
+        // presents the updated "rest" as the value
+        deepEqual(v1, good('abcqrs', 'abcqrs', 18));
+    });
 
     test("Put", function() {
         var val = C.put('xyz');
-        deepEqual(val.parse('abc', []), good(null, 'xyz', []));
-    });
-    
-    test("PutState", function() {
-        var v1 = C.putState(29).parse('abc123', 2);
-        deepEqual(v1, good(null, 'abc123', 29));
+        deepEqual(val.parse('abc', []), good('xyz', 'xyz', []));
     });
     
     test("UpdateState", function() {
         var v1 = C.updateState(function(x) {return x * 4;}).parse('abc', 18);
-        deepEqual(v1, good(null, 'abc', 72));
+        deepEqual(v1, good(72, 'abc', 72));
+    });
+    
+    test("PutState", function() {
+        var v1 = C.putState(29).parse('abc123', 2);
+        deepEqual(v1, good(29, 'abc123', 29));
     });
         
     test("Check", function() {
