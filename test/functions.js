@@ -78,5 +78,10 @@ testModule('functions', function() {
         deepEqual(F.cons(3, ['a', 'b']), [3, 'a', 'b']);
         deepEqual(F.cons(4, []), [4]);
     });
+    
+    test("replicate", function() {
+        deepEqual(F.replicate(0, 4), []);
+        deepEqual(F.replicate(3, 4), [4, 4, 4]);
+    });
 
 });
