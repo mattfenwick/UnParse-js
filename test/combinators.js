@@ -50,6 +50,8 @@ testModule('combinators', function() {
         var val = C.check(function(x) {return x.length > 3;}, C.get);
         deepEqual(val.parse('abcde', []), good('abcde', 'abcde', []));
         deepEqual(val.parse('abc', []), M.zero);
+        var error = C.check(function() {return true;}, C.error('oops'));
+        deepEqual(error.parse('abc', []), M.error('oops'));
     });
     
     test("Update", function() {
