@@ -46,10 +46,6 @@ testModule('functions', function() {
         deepEqual(F.pair(), [undefined, undefined]);
     });
     
-    test("buildSet", function() {
-        deepEqual(F.buildSet("abc"), {'a': 1, 'b': 1, 'c': 1});
-    });
-    
     test("constF", function() {
         deepEqual(F.constF("abc")(), "abc");
         deepEqual(F.constF("abc")(1, 2, 3), "abc");
