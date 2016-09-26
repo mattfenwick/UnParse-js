@@ -12,9 +12,8 @@ var testModule = describe,
     good = C.good;
 
 testModule('cst', function() {
-    var cut = Cst.cut, addError = Cst.addError, node = Cst.node;
-    var basic = C.basic, zero = C.zero, error = C.error, count = C.count;
-    var err = M.error;
+    var node = Cst.node;
+    var count = C.count;
     
     function cstnode(name, start, end) {
         var pairs = Array.prototype.slice.call(arguments, 3),
@@ -24,34 +23,6 @@ testModule('cst', function() {
         });
         return obj;
     }
-
-    
-    test("CutSuccess", function() {
-        deepEqual(cut('oops', basic.item).parse('abc', null), good('a', 'bc', null));
-    });
-    
-    test("CutFail", function() {
-        deepEqual(cut('oops', zero).parse('abc', 12), err([['oops',12]]));
-    });
-    
-    test("CutError", function() {
-        deepEqual(cut('oops', error('err')).parse('abc', 12), err('err'));
-    });
-    
-    test("AddErrorSuccess", function() {
-        deepEqual(addError('oops', basic.item).parse('abc', null),
-                         good('a', 'bc', null));
-    });
-
-    test("AddErrorFail", function() {
-        deepEqual(addError('oops', zero).parse('abc', 12),
-                         M.zero);
-    });
-
-    test("AddErrorError", function() {
-        deepEqual(addError('oops', error(['err'])).parse('abc', 12),
-                         err([['oops', 12], 'err']));
-    });
 
     test("NodeSuccess", function() {
         deepEqual(node('blar').parse('abc', 17),
@@ -63,15 +34,15 @@ testModule('cst', function() {
     });
     
     test("NodeFailure", function() {
-        deepEqual(node('blar', ['a', zero]).parse('abc', 17),
+        deepEqual(node('blar', ['a', C.zero]).parse('abc', 17),
                          M.zero);
     });
     
     test("NodeError", function() {
-        deepEqual(node('blar', ['a', cut('oops', zero)]).parse('abc', 17),
-                         err([['blar', 17], ['oops', 17]]));
-        deepEqual(node('blar', ['a', count.item], ['b', cut('oops', zero)]).parse('def', 17),
-                         err([['blar', 17], ['oops', 18]]));
+        deepEqual(node('blar', ['a', C.cut('oops', C.zero)]).parse('abc', 17),
+                         M.error([['blar', 17], ['oops', 17]]));
+        deepEqual(node('blar', ['a', count.item], ['b', C.cut('oops', C.zero)]).parse('def', 17),
+                         M.error([['blar', 17], ['oops', 18]]));
     });
 });
 

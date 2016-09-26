@@ -226,6 +226,21 @@ testModule('combinators', function() {
         deepEqual(v2, M.zero);
         deepEqual(v3, good(82, '123abc', null));
     });
+
+    test("Cut", function() {
+        deepEqual(C.cut('oops', iz1.item).parse('abc', null), good('a', 'bc', null));
+        deepEqual(C.cut('oops', C.zero).parse('abc', 12), M.error([['oops',12]]));
+        deepEqual(C.cut('oops', C.error('err')).parse('abc', 12), M.error('err'));
+    });
+    
+    test("AddError", function() {
+        deepEqual(C.addError('oops', iz1.item).parse('abc', null),
+                         good('a', 'bc', null));
+        deepEqual(C.addError('oops', C.zero).parse('abc', 12),
+                         M.zero);
+        deepEqual(C.addError('oops', C.error(['err'])).parse('abc', 12),
+                         M.error([['oops', 12], 'err']));
+    });
     
     test("Update", function() {
         var v1 = C.update(function(x) {return x + 'qrs';}).parse('abc', 18);

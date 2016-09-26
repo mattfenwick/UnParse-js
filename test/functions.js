@@ -73,5 +73,10 @@ testModule('functions', function() {
         deepEqual(F.id(123), 123);
         deepEqual(F.id(), undefined);
     });
+    
+    test("cons", function() {
+        deepEqual(F.cons(3, ['a', 'b']), [3, 'a', 'b']);
+        deepEqual(F.cons(4, []), [4]);
+    });
 
 });
