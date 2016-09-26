@@ -83,5 +83,9 @@ testModule('functions', function() {
         deepEqual(F.replicate(0, 4), []);
         deepEqual(F.replicate(3, 4), [4, 4, 4]);
     });
+    
+    test("flipApply", function() {
+        deepEqual(F.flipApply(3, triple), 9);
+    });
 
 });
