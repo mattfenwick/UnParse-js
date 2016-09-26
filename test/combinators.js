@@ -324,12 +324,18 @@ testModule('combinators', function() {
             deepEqual(v2, good(1, [2,3], 'hi'));
         });
         
-        test("string", function() {
+        test("string -- accepts JS Strings", function() {
             var parser = iz1.string('abc'),
                 v1 = parser.parse('abcdef', null),
                 v2 = parser.parse('abdef', null);
             deepEqual(v1, good('abc', 'def', null));
             deepEqual(v2, M.zero);
+        });
+        
+        test("string -- accepts arrays", function() {
+            var parser = iz1.string([1,2,3]);
+            deepEqual(parser.parse([1,2,3,4,5], null), good([1,2,3], [4,5], null));
+            deepEqual(parser.parse([1,2,4,5], null), M.zero);
         });
         
         test("not1", function() {
