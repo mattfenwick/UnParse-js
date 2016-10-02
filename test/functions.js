@@ -79,5 +79,10 @@ testModule('functions', function() {
         deepEqual(F.debugString(31), "31");
         deepEqual(F.debugString(undefined), "undefined");
     });
+    
+    test("dict", function() {
+        deepEqual(F.dict([['b', 2], ['a', 1]]), {'a': 1, 'b': 2});
+        deepEqual(F.dict([]), {});
+    });
 
 });
