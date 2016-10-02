@@ -10,9 +10,9 @@ var testModule = describe,
     deepEqual = assert.deepEqual;
 
 testModule('operators-alternates', function() {
-    var plus = C.seq2R(C.basic.literal('+'), C.pure(function(x,y) {return [x, y];})),
-        bang = C.seq2R(C.basic.literal('!'), C.pure(function(x) {return '!(' + x + ')';})),
-        question = C.seq2R(C.basic.literal('?'), C.pure(function q(y) {return '(' + y + ')?';})),
+    var plus = C.seq2R(C.basic.literal('+'), C.pure((x,y) => [x, y])),
+        bang = C.seq2R(C.basic.literal('!'), C.pure((x) => '!(' + x + ')')),
+        question = C.seq2R(C.basic.literal('?'), C.pure((y) => '(' + y + ')?')),
         num = C.fmap(parseFloat, C.basic.oneOf('0123456789'));
     
     test("chainL", function() {
