@@ -84,5 +84,13 @@ testModule('functions', function() {
         deepEqual(F.dict([['b', 2], ['a', 1]]), {'a': 1, 'b': 2});
         deepEqual(F.dict([]), {});
     });
+    
+    test("updatePosition", function() {
+        deepEqual(F.updatePosition('\n', [3, 8]), [4, 1]);
+        deepEqual(F.updatePosition('\r', [3, 8]), [3, 9]);
+        deepEqual(F.updatePosition('\f', [3, 8]), [3, 9]);
+        deepEqual(F.updatePosition(' ', [3, 8]), [3, 9]);
+        deepEqual(F.updatePosition('t', [3, 8]), [3, 9]);
+    });
 
 });
