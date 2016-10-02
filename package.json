@@ -27,6 +27,6 @@
   "homepage": "https://github.com/mattfenwick/UnParse-js",
   "dependencies": {},
   "devDependencies": {
-    "mocha": "1.18.2"
+    "mocha": "3.1.0"
   }
 }
