@@ -16,12 +16,9 @@ testModule('cst', function() {
     var node = Cst.node;
     var count = C.count;
     
-    function cstnode(name, start, end) {
-        var pairs = Array.prototype.slice.call(arguments, 3),
-            obj = {'_name': name, '_start': start, '_end': end};
-        pairs.map(function(p) {
-            obj[p[0]] = p[1];
-        });
+    function cstnode(name, start, end, ...pairs) {
+        var obj = {'_name': name, '_start': start, '_end': end};
+        pairs.forEach(([key, value]) => obj[key] = value);
         return obj;
     }
 
