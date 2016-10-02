@@ -134,19 +134,12 @@ testModule('combinators', function() {
     });
     
     test("appP -- type error", function() {
-        var autoFail = false;
-        try {
-            C.appP(function() {}, iz1.item);
-            autoFail = true;
-        } catch(e) {
-            var obj = JSON.parse(e.message);
+        H.assertThrow(() => C.appP(() => null, iz1.item), function(exception) {
+            var obj = JSON.parse(exception.message);
             deepEqual(obj.message, 'type error');
             deepEqual(obj.function, 'appP');
             deepEqual(obj.expected, 'Parser');
-        }
-        if (autoFail) {
-            deepEqual(true, 'failed to notice type error');
-        }
+        });
     });
     
     test("app", function() {
@@ -457,21 +450,15 @@ testModule('combinators', function() {
     
     test("when using function where Parser is expected, the 'actual' key appears in error message", function() {
         var p = iz1.literal(2);
-        try {
-            C.seq([function() {}, p]);
-            deepEqual(0, 1, "expected exception");
-        } catch(e) {
-            deepEqual(JSON.parse(e.message).actual, 'function');
-        }
+        H.assertThrow(() => C.seq([() => null, p]), function(exception) {
+            deepEqual(JSON.parse(exception.message).actual, 'function');
+        });
     });
     
     test("when using non-function where Parser is expected, the 'actual' key appears in error message", function() {
-        try {
-            C.seq([3]);
-            deepEqual(0, 1, "expected exception");
-        } catch(e) {
-            deepEqual(JSON.parse(e.message).actual, '3');
-        }
+        H.assertThrow(() => C.seq([3]), function(exception) {
+            deepEqual(JSON.parse(exception.message).actual, '3');
+        });
     });
 
 });
