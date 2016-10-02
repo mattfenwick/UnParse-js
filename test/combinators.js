@@ -236,11 +236,11 @@ testModule('combinators', function() {
     });
     
     test("CatchError", function() {
-        function f1(e) {return C.pure(3);}
-        function f2(e) {return C.error('dead again');}
+        function f1(e) {return C.pure(e);}
+        function f2(_e) {return C.error('dead again');}
         // error -> good -- resumes parsing with tokens and state from before the error occurred
         deepEqual(C.catchError(f1, C.error('dead 1')).parse('123', [2, 4]),
-                  good(3, '123', [2,4]));
+                  good('dead 1', '123', [2,4]));
         // good -> good (unaffected by this combinator);
         deepEqual(C.catchError(f1, C.pure(18)).parse('123', [2,4]),
                   good(18, '123', [2,4]));

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "mocha --reporter spec",
-    "lint": "grunt --force"
+    "lint": "jshint --verbose lib/**.js test/**.js examples/**.js"
   },
   "repository": {
     "type": "git",
@@ -27,9 +27,6 @@
   "homepage": "https://github.com/mattfenwick/UnParse-js",
   "dependencies": {},
   "devDependencies": {
-    "grunt": "0.4.4",
-    "grunt-cli": "0.1.13",
-    "grunt-contrib-jshint": "0.9.2",
     "mocha": "1.18.2"
   }
 }
