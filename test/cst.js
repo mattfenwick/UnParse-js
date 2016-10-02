@@ -4,6 +4,7 @@
 var Cst = require('../lib/cst'),
     C = require('../lib/combinators'),
     M = require('../lib/maybeerror'),
+    H = require('./helper'),
     assert = require("assert");
 
 var testModule = describe,
@@ -45,28 +46,11 @@ testModule('cst', function() {
                          M.error([['blar', 17], ['oops', 18]]));
     });
     
-    function assertThrows(f, tests) {
-        var thrown = false;
-        var exception = null;
-        try {
-            f();
-        } catch (e) {
-            thrown = true;
-            exception = e;
-        }
-        if (!thrown) {
-            deepEqual(0, 1, "failed to throw");
-        } else {
-            deepEqual(1, 1, "successfully threw");
-            tests(exception);
-        }
-    }
-    
     test("duplicate node names are not allowed", function() {
         function test() {
             node('hi', ['a', C.zero], ['a', C.zero]);
         }
-        assertThrows(test, function(e) {
+        H.assertThrow(test, function(e) {
             deepEqual(e.message, 'duplicate name -- a');
         });
     });

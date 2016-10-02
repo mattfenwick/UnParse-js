@@ -70,5 +70,14 @@ testModule('functions', function() {
     test("flipApply", function() {
         deepEqual(F.flipApply(3, triple), 9);
     });
+    
+    test("debugString", function() {
+        deepEqual(F.debugString(() => []), "function");
+        deepEqual(F.debugString(null), "null");
+        deepEqual(F.debugString(false), "false");
+        deepEqual(F.debugString({}), "[object Object]");
+        deepEqual(F.debugString(31), "31");
+        deepEqual(F.debugString(undefined), "undefined");
+    });
 
 });

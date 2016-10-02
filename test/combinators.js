@@ -3,6 +3,7 @@
 
 var C = require('../lib/combinators'),
     M = require('../lib/maybeerror'),
+    H = require('./helper'),
     assert = require("assert"),
     good = C.good;
 
@@ -15,6 +16,24 @@ testModule('combinators', function() {
     var iz1 = C.basic,
         iz2 = C.position,
         iz3 = C.count;
+        
+    test("checkFunction", function() {
+        H.assertNoThrow(() => C.checkFunction('test', () => []), () => []);
+        H.assertThrow(() => C.checkFunction('test', 'abc'),
+          (exc) => deepEqual(exc.message, '{"message":"type error","function":"test","expected":"function","actual":"abc"}'));
+        H.assertThrow(() => C.checkFunction('test', null),
+          (exc) => deepEqual(exc.message, '{"message":"type error","function":"test","expected":"function","actual":"null"}'));
+    });
+    
+    test("checkParser", function() {
+        H.assertNoThrow(() => C.checkParser('test', C.pure(4)), () => []);
+        H.assertThrow(() => C.checkParser('test', 'abc'),
+          (exc) => deepEqual(exc.message, '{"message":"type error","function":"test","expected":"Parser","actual":"abc"}'));
+        H.assertThrow(() => C.checkParser('test', null),
+          (exc) => deepEqual(exc.message, '{"message":"type error","function":"test","expected":"Parser","actual":"null"}'));
+        H.assertThrow(() => C.checkParser('test', () => []),
+          (exc) => deepEqual(exc.message, '{"message":"type error","function":"test","expected":"Parser","actual":"function"}'));
+    });
     
     test("pure", function() {
         var val = C.pure(3).parse('abc', 2);
