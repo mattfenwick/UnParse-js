@@ -44,5 +44,31 @@ testModule('cst', function() {
         deepEqual(node('blar', ['a', count.item], ['b', C.cut('oops', C.zero)]).parse('def', 17),
                          M.error([['blar', 17], ['oops', 18]]));
     });
+    
+    function assertThrows(f, tests) {
+        var thrown = false;
+        var exception = null;
+        try {
+            f();
+        } catch (e) {
+            thrown = true;
+            exception = e;
+        }
+        if (!thrown) {
+            deepEqual(0, 1, "failed to throw");
+        } else {
+            deepEqual(1, 1, "successfully threw");
+            tests(exception);
+        }
+    }
+    
+    test("duplicate node names are not allowed", function() {
+        function test() {
+            node('hi', ['a', C.zero], ['a', C.zero]);
+        }
+        assertThrows(test, function(e) {
+            deepEqual(e.message, 'duplicate name -- a');
+        });
+    });
 });
 

@@ -25,19 +25,6 @@ testModule('functions', function() {
         deepEqual(tripleThenAdd(19), 61);
     });
     
-    test("getArgs", function() {
-        function g() {
-            return F.getArgs(arguments, 0);
-        }
-        function h() {
-            return F.getArgs(arguments, 1);
-        }
-        deepEqual(g(0, 1, 2, 3), [0, 1, 2, 3]);
-        deepEqual(g(), []);
-        deepEqual(h(0, 1, 2, 3), [1, 2, 3]);
-        deepEqual(h(), []);
-    });
-    
     test("first", function() {
         deepEqual(F.first(1, 2), 1);
         deepEqual(F.first(), undefined);
@@ -57,10 +44,6 @@ testModule('functions', function() {
         deepEqual(F.pair(1, 2), [1, 2]);
         deepEqual(F.pair(1, 2, 3), [1, 2]);
         deepEqual(F.pair(), [undefined, undefined]);
-    });
-    
-    test("buildSet", function() {
-        deepEqual(F.buildSet("abc"), {'a': 1, 'b': 1, 'c': 1});
     });
     
     test("constF", function() {
