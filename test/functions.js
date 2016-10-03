@@ -35,11 +35,6 @@ testModule('functions', function() {
         deepEqual(F.second(), undefined);
     });
     
-    test("buildSepByValue", function() {
-        deepEqual(F.buildSepByValue('a', [['b', 'c'], ['d', 'e'], ['f', 'g']]),
-                  {'values': ['a', 'c', 'e', 'g'], 'separators': ['b', 'd', 'f']});
-    });
-    
     test("pair", function() {
         deepEqual(F.pair(1, 2), [1, 2]);
         deepEqual(F.pair(1, 2, 3), [1, 2]);

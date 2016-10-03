@@ -299,10 +299,10 @@ testModule('combinators', function() {
             val2 = parser.parse('ppabc', {}),
             val3 = parser.parse('psabc', {}),
             val4 = parser.parse('psqtqabc', {});
-        deepEqual(val1, good({'separators': [], 'values': []}, 'abc', {}));
-        deepEqual(val2, good({'separators': [], 'values': ['p']}, 'pabc', {}));
-        deepEqual(val3, good({'separators': [], 'values': ['p']}, 'sabc', {}));
-        deepEqual(val4, good({'separators': ['s', 't'], 'values': ['p', 'q', 'q']}, 'abc', {}));
+        deepEqual(val1, good(null, 'abc', {}));
+        deepEqual(val2, good(['p', []], 'pabc', {}));
+        deepEqual(val3, good(['p', []], 'sabc', {}));
+        deepEqual(val4, good(['p', [['s', 'q'], ['t', 'q']]], 'abc', {}));
     });
     
     test("sepBy1", function() {
@@ -312,9 +312,9 @@ testModule('combinators', function() {
             val3 = parser.parse('psabc', {}),
             val4 = parser.parse('psqtqabc', {});
         deepEqual(val1, M.zero);
-        deepEqual(val2, good({'separators': [], 'values': ['p']}, 'pabc', {}));
-        deepEqual(val3, good({'separators': [], 'values': ['p']}, 'sabc', {}));
-        deepEqual(val4, good({'separators': ['s', 't'], 'values': ['p', 'q', 'q']}, 'abc', {}));
+        deepEqual(val2, good(['p', []], 'pabc', {}));
+        deepEqual(val3, good(['p', []], 'sabc', {}));
+        deepEqual(val4, good(['p', [['s', 'q'], ['t', 'q']]], 'abc', {}));
     });
 
     testModule("itemizer/basic", function() {
