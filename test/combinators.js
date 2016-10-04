@@ -277,12 +277,6 @@ testModule('combinators', function() {
         deepEqual(val.parse([2,3,4], 'hi'), good(2, [3,4], 'hi'));
         deepEqual(val.parse([3,4,5], 'hi'), M.error('bag-agg'));
     });
-
-    test("cut", function() {
-        deepEqual(C.cut('oops', iz1.item).parse('abc', null), good('a', 'bc', null));
-        deepEqual(C.cut('oops', C.zero).parse('abc', 12), M.error([['oops',12]]));
-        deepEqual(C.cut('oops', C.error('err')).parse('abc', 12), M.error('err'));
-    });
     
     test("addError", function() {
         deepEqual(C.addError('oops', iz1.item).parse('abc', null),
@@ -290,7 +284,7 @@ testModule('combinators', function() {
         deepEqual(C.addError('oops', C.zero).parse('abc', 12),
                          M.zero);
         deepEqual(C.addError('oops', C.error(['err'])).parse('abc', 12),
-                         M.error([['oops', 12], 'err']));
+                         M.error(['oops', 'err']));
     });
     
     test("sepBy0", function() {

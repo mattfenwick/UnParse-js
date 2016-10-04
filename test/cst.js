@@ -15,13 +15,29 @@ var testModule = describe,
 testModule('cst', function() {
     var node = Cst.node;
     var count = C.count;
-    
+    var iz1 = C.basic;
+
     function cstnode(name, start, end, ...pairs) {
         var obj = {'_name': name, '_start': start, '_end': end};
         pairs.forEach(([key, value]) => obj[key] = value);
         return obj;
     }
 
+    test("cut", function() {
+        deepEqual(Cst.cut('oops', iz1.item).parse('abc', null), good('a', 'bc', null));
+        deepEqual(Cst.cut('oops', C.zero).parse('abc', 12), M.error([['oops',12]]));
+        deepEqual(Cst.cut('oops', C.error('err')).parse('abc', 12), M.error('err'));
+    });
+
+    test("addErrorState", function() {
+        deepEqual(Cst.addErrorState('oops', iz1.item).parse('abc', null),
+                         good('a', 'bc', null));
+        deepEqual(Cst.addErrorState('oops', C.zero).parse('abc', 12),
+                         M.zero);
+        deepEqual(Cst.addErrorState('oops', C.error(['err'])).parse('abc', 12),
+                         M.error([['oops', 12], 'err']));
+    });
+    
     test("NodeSuccess", function() {
         deepEqual(node('blar').parse('abc', 17),
                          good(cstnode('blar', 17, 17), 'abc', 17));
@@ -37,9 +53,9 @@ testModule('cst', function() {
     });
     
     test("NodeError", function() {
-        deepEqual(node('blar', ['a', C.cut('oops', C.zero)]).parse('abc', 17),
+        deepEqual(node('blar', ['a', Cst.cut('oops', C.zero)]).parse('abc', 17),
                          M.error([['blar', 17], ['oops', 17]]));
-        deepEqual(node('blar', ['a', count.item], ['b', C.cut('oops', C.zero)]).parse('def', 17),
+        deepEqual(node('blar', ['a', count.item], ['b', Cst.cut('oops', C.zero)]).parse('def', 17),
                          M.error([['blar', 17], ['oops', 18]]));
     });
     
