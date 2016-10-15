@@ -87,5 +87,15 @@ testModule('functions', function() {
         deepEqual(F.updatePosition(' ', [3, 8]), [3, 9]);
         deepEqual(F.updatePosition('t', [3, 8]), [3, 9]);
     });
+    
+    test("applyAll", function() {
+        deepEqual(F.applyAll(3, [(x) => x + 100, (y) => y * 100, (z) => z - 1]), 10299);
+        deepEqual(F.applyAll("hi", []), "hi");
+    });
+
+    test("reverseApplyAll", function() {
+        deepEqual(F.reverseApplyAll([(x) => x + 100, (y) => y * 100, (z) => z - 1], 3), 300);
+        deepEqual(F.reverseApplyAll([], "hi"), "hi");
+    });
 
 });
