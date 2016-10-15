@@ -25,15 +25,15 @@ testModule('operators', function() {
     });
     
     test("chainR", function() {
-        var p = C.basic.literal('+'),
+        var p = C.basic.oneOf('+*^'),
             n = C.basic.oneOf('0123456789');
         var parser = O.chainR(p, n),
-            a = parser.parse('8+4+2+1abc', 'state'),
+            a = parser.parse('8+4*2^1abc', 'state'),
             v = a.value;
         deepEqual(a.status, 'success');
         deepEqual(v.rest, 'abc');
         deepEqual(v.state, 'state');
-        deepEqual(O.dump(v.result), '(+ 8 (+ 4 (+ 2 1)))');
+        deepEqual(O.dump(v.result), '(+ 8 (* 4 (^ 2 1)))');
     });
     
     test("constructL", function() {
@@ -49,15 +49,15 @@ testModule('operators', function() {
     });
     
     test("chainL", function() {
-        var p = C.basic.literal('+'),
+        var p = C.basic.oneOf('*+-'),
             n = C.basic.oneOf('0123456789');
         var parser = O.chainL(p, n),
-            a = parser.parse('8+4+2+1abc', 'state'),
+            a = parser.parse('8*4-2+1abc', 'state'),
             v = a.value;
         deepEqual(a.status, 'success');
         deepEqual(v.rest, 'abc');
         deepEqual(v.state, 'state');
-        deepEqual(O.dump(v.result), '(+ (+ (+ 8 4) 2) 1)');
+        deepEqual(O.dump(v.result), '(+ (- (* 8 4) 2) 1)');
     });
     
     test("constructPrefix", function() {
@@ -67,13 +67,13 @@ testModule('operators', function() {
     });
     
     test("prefix", function() {
-        var parser = O.prefix(C.basic.literal('!'), num),
-            a = parser.parse('!!!8abc', 'state'),
+        var parser = O.prefix(C.basic.oneOf('!$'), num),
+            a = parser.parse('$!!8abc', 'state'),
             v = a.value;
         deepEqual(a.status, 'success');
         deepEqual(v.rest, 'abc');
         deepEqual(v.state, 'state');
-        deepEqual(O.dump(v.result), '(! (! (! 8)))');
+        deepEqual(O.dump(v.result), '($ (! (! 8)))');
     });
     
     test("constructPostfix", function() {
@@ -83,13 +83,13 @@ testModule('operators', function() {
     });
     
     test("postfix", function() {
-        var parser = O.postfix(C.basic.literal('?'), num),
-            a = parser.parse('8???abc', 'state'),
+        var parser = O.postfix(C.basic.oneOf('?%'), num),
+            a = parser.parse('8??%abc', 'state'),
             v = a.value;
         deepEqual(a.status, 'success');
         deepEqual(v.rest, 'abc');
         deepEqual(v.state, 'state');
-        deepEqual(O.dump(v.result), '(((8 ?) ?) ?)');
+        deepEqual(O.dump(v.result), '(((8 ?) ?) %)');
     });
 
 });
