@@ -84,9 +84,19 @@ UnParse-js avoids magic -- the kind of magic that makes it easy to do really sim
 things, but hard to deal with actual real-world problems in a clean, sane way.
 This allows UnParse-js to stay simple and focused and free of arbitrary restrictions.
 You don't need to worry about it mucking with things behind your back!
-     
 
-### Contact information ###
+## Instructions ##
+
+Publishing a new version to npm:
+
+ - update version string in [index.js](./index.js)
+ - update version number in [package.json](./package.json)
+ - push code to github
+ - create annotated tag: `git tag -a <version_identifier>`
+ - add release notes to tag in github
+ - `npm publish`
+
+## Contact information ##
 
 Found a bug?  Need help figuring something out?  Want a new feature?  Feel free
 to report anything using the github issue tracker, or email me directly at
