@@ -36,9 +36,9 @@ That depends on what we want out of a parser library.  My preferences are for pa
    including functions and objects.  This means that it's easy to create new
    parsers, as well as combinators, using the language's facilities.
 
- - the result value of a successful parser is important.  I want full control
-   over what value is generated.  I don't want a default parse tree crammed with
-   tons of useless junk.  I don't want a mess of nested tuples.  Generating the
+ - the result value of a successful parser is important.  You have full control
+   over what value is generated.  You don't have to deal with a parse tree 
+   crammed with tons of useless junk or a mess of nested tuples.  Generating the
    result should be clean and simple.
 
  - errors are a key aspect of useful parsers.  How and when are they created,
@@ -76,14 +76,14 @@ UnParse-js supports monadic parsing, as well as combinators based on the Applica
 Functor, MonadError, Alternative, and Traversable typeclasses, if you're familiar
 with Haskell.  It also supports lookahead and optional parses.  
 
-Best of all, since parsers are ordinary Javascript objects, they play by the rules --
-you don't need any special knowledge or syntax to use them, they work just fine
+Best of all, since parsers are ordinary Javascript objects, they play by the rules. 
+You don't need any special knowledge or syntax to use them, they work just fine
 with functions and classes, and you can put them in data structures.
 
 UnParse-js avoids magic -- the kind of magic that makes it easy to do really simple
 things, but hard to deal with actual real-world problems in a clean, sane way.
-This allows UnParse-js to stay simple and focused -- and you don't need to worry 
-about it mucking with things behind your back -- and free of arbitrary restrictions.
+This allows UnParse-js to stay simple and focused and free of arbitrary restrictions.
+You don't need to worry about it mucking with things behind your back!
      
 
 ### Contact information ###
